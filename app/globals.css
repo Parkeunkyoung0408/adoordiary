@@ -1,0 +1,285 @@
+@import "tailwindcss";
+
+:root {
+  --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
+    system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo",
+    "Noto Sans KR", "Malgun Gothic", sans-serif;
+  
+  /* Mika Matcha (Default) Theme */
+  --bg-app: #FFF7F4;
+  --bg-container: #FFF7F4;
+  --bg-card: #FAF4EE;
+  --bg-card-inner: #F3EBE4;
+  --border-color: #EADECF;
+  --text-main: #164229;
+  --text-muted: #4E6B56;
+  --accent-color: #DCA7E8;
+  --accent-bg: #F5E8F7;
+  --nav-active-bg: #F5E8F7;
+  --nav-active-text: #164229;
+  --button-primary: #164229;
+  --button-primary-hover: #265239;
+  --button-secondary-bg: #ffffff;
+  --button-secondary-border: #EADECF;
+  --button-secondary-text: #164229;
+  --shadow-sm: 0 2px 8px rgba(22, 66, 41, 0.04);
+  --shadow-md: 0 8px 24px rgba(22, 66, 41, 0.06);
+  --shadow-lg: 0 16px 40px rgba(22, 66, 41, 0.1);
+  --accent-gradient: linear-gradient(135deg, #DCA7E8 0%, #E6C5EE 100%);
+  --button-accent-text: #164229;
+  --accent-shadow: 0 8px 20px -4px rgba(220, 167, 232, 0.45);
+  --accent-shadow-hover: 0 12px 28px -3px rgba(220, 167, 232, 0.6);
+}
+
+[data-theme="orange"] {
+  /* Cherry Milk Theme */
+  --bg-app: #EEDAE6;
+  --bg-container: #FFFBEA;
+  --bg-card: #FFFDF5;
+  --bg-card-inner: #F7F2D5;
+  --border-color: #EADFBE;
+  --text-main: #3A2B20;
+  --text-muted: #7E6C60;
+  --accent-color: #C2E9FF;
+  --accent-bg: #E1F3FE;
+  --nav-active-bg: #C2E9FF;
+  --nav-active-text: #3A2B20;
+  --button-primary: #3A2B20;
+  --button-primary-hover: #4D3A2C;
+  --button-secondary-bg: #ffffff;
+  --button-secondary-border: #EADFBE;
+  --button-secondary-text: #3A2B20;
+  --shadow-sm: 0 2px 8px rgba(58, 43, 32, 0.04);
+  --shadow-md: 0 8px 24px rgba(58, 43, 32, 0.06);
+  --shadow-lg: 0 16px 40px rgba(58, 43, 32, 0.1);
+  --accent-gradient: linear-gradient(135deg, #C2E9FF 0%, #E3F4FF 100%);
+  --button-accent-text: #3A2B20;
+  --accent-shadow: 0 8px 20px -4px rgba(194, 233, 255, 0.65);
+  --accent-shadow-hover: 0 12px 28px -3px rgba(194, 233, 255, 0.8);
+}
+
+[data-theme="blue"] {
+  /* Cloud Skin Theme */
+  --bg-app: #C2E9FF;
+  --bg-container: #FFFBEA;
+  --bg-card: #FFFDF5;
+  --bg-card-inner: #F7F2D5;
+  --border-color: #EADFBE;
+  --text-main: #3A2B20;
+  --text-muted: #7E6C60;
+  --accent-color: #EEDAE6;
+  --accent-bg: #F4E7EE;
+  --nav-active-bg: #EEDAE6;
+  --nav-active-text: #3A2B20;
+  --button-primary: #3A2B20;
+  --button-primary-hover: #4D3A2C;
+  --button-secondary-bg: #ffffff;
+  --button-secondary-border: #EADFBE;
+  --button-secondary-text: #3A2B20;
+  --shadow-sm: 0 2px 8px rgba(58, 43, 32, 0.04);
+  --shadow-md: 0 8px 24px rgba(58, 43, 32, 0.06);
+  --shadow-lg: 0 16px 40px rgba(58, 43, 32, 0.1);
+  --accent-gradient: linear-gradient(135deg, #EEDAE6 0%, #FAF0F6 100%);
+  --button-accent-text: #3A2B20;
+  --accent-shadow: 0 8px 20px -4px rgba(238, 218, 230, 0.65);
+  --accent-shadow-hover: 0 12px 28px -3px rgba(238, 218, 230, 0.8);
+}
+
+[data-theme="yellow"] {
+  /* Morning Dew Theme */
+  --bg-app: #FFF9CF;
+  --bg-container: #FFFBEA;
+  --bg-card: #FFFDF5;
+  --bg-card-inner: #F7F2D5;
+  --border-color: #EADFBE;
+  --text-main: #3A2B20;
+  --text-muted: #7E6C60;
+  --accent-color: #C2E9FF;
+  --accent-bg: #E1F3FE;
+  --nav-active-bg: #C2E9FF;
+  --nav-active-text: #3A2B20;
+  --button-primary: #3A2B20;
+  --button-primary-hover: #4D3A2C;
+  --button-secondary-bg: #ffffff;
+  --button-secondary-border: #EADFBE;
+  --button-secondary-text: #3A2B20;
+  --shadow-sm: 0 2px 8px rgba(58, 43, 32, 0.04);
+  --shadow-md: 0 8px 24px rgba(58, 43, 32, 0.06);
+  --shadow-lg: 0 16px 40px rgba(58, 43, 32, 0.1);
+  --accent-gradient: linear-gradient(135deg, #C2E9FF 0%, #E3F4FF 100%);
+  --button-accent-text: #3A2B20;
+  --accent-shadow: 0 8px 20px -4px rgba(194, 233, 255, 0.65);
+  --accent-shadow-hover: 0 12px 28px -3px rgba(194, 233, 255, 0.8);
+}
+
+[data-theme="night"] {
+  /* Cocao Root Theme (Dark Mode) */
+  --bg-app: #3A2B20;
+  --bg-container: #261C14;
+  --bg-card: #2F231A;
+  --bg-card-inner: #1D150F;
+  --border-color: #4D3A2C;
+  --text-main: #FFFBEA;
+  --text-muted: #A39082;
+  --accent-color: #EEDAE6;
+  --accent-bg: #422D38;
+  --nav-active-bg: #EEDAE6;
+  --nav-active-text: #3A2B20;
+  --button-primary: #FFFBEA;
+  --button-primary-hover: #EADFBE;
+  --button-secondary-bg: #1D150F;
+  --button-secondary-border: #4D3A2C;
+  --button-secondary-text: #FFFBEA;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.4);
+  --accent-gradient: linear-gradient(135deg, #EEDAE6 0%, #FAF0F6 100%);
+  --button-accent-text: #3A2B20;
+  --accent-shadow: 0 8px 20px -4px rgba(238, 218, 230, 0.5);
+  --accent-shadow-hover: 0 12px 28px -3px rgba(238, 218, 230, 0.65);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+textarea,
+input,
+button {
+  font-family: inherit;
+  color: inherit;
+}
+
+/* Custom CSS Keyframe Animations */
+@keyframes spin-roulette {
+  0% { transform: translateY(0) rotateX(0deg); opacity: 1; }
+  25% { transform: translateY(-30px) rotateX(180deg); opacity: 0.3; }
+  50% { transform: translateY(30px) rotateX(360deg); opacity: 0.3; }
+  100% { transform: translateY(0) rotateX(720deg); opacity: 1; }
+}
+
+@keyframes letter-pop {
+  0% { transform: scale(0.9); opacity: 0; }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+@keyframes shred {
+  0% { transform: translateY(0) scale(1); opacity: 1; filter: blur(0); }
+  40% { transform: translateY(-10px) scale(0.98); opacity: 0.8; filter: blur(1px); }
+  100% { transform: translateY(50px) scale(0.7); opacity: 0; filter: blur(8px); }
+}
+
+@keyframes float-ash {
+  0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+  100% { transform: translate(var(--x, 30px), var(--y, -100px)) rotate(var(--r, 360deg)); opacity: 0; }
+}
+
+/* Utility classes for animation activation */
+.animate-spin-letter {
+  animation: spin-roulette 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.animate-pop {
+  animation: letter-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.animate-shred-text {
+  animation: shred 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+.animate-ash {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background-color: var(--text-muted);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: float-ash 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+.animate-shake-input {
+  animation: shake 0.3s ease-in-out;
+}
+
+/* Glassmorphism utility */
+.glass-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(12px);
+}
+
+.glass-panel-sm {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Carousel Card transitions */
+.carousel-card {
+  transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.4s ease;
+}
+
+/* Custom dotted list style for notepad diary pages */
+.notepad-lines {
+  background-image: linear-gradient(var(--border-color) 1px, transparent 1px);
+  background-size: 100% 2.25rem;
+  line-height: 2.25rem;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Premium Accent Button Class */
+.btn-accent {
+  background: var(--accent-gradient);
+  box-shadow: var(--accent-shadow);
+  color: var(--button-accent-text, #ffffff);
+  transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), filter 0.2s ease;
+}
+
+.btn-accent:hover {
+  transform: translateY(-1.5px) scale(1.015);
+  box-shadow: var(--accent-shadow-hover);
+  filter: brightness(1.04);
+}
+
+.btn-accent:active {
+  transform: translateY(1px) scale(0.98);
+  box-shadow: var(--accent-shadow);
+  filter: brightness(0.96);
+}
