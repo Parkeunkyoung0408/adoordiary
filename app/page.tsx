@@ -1,5 +1,5 @@
-import MainScreen from "./components/MainScreen";
+import { redirect } from "next/navigation";
 
 export default function Home() {
-  return <MainScreen />;
+  redirect("/edit");
 }

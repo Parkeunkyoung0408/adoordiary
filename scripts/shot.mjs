@@ -1,6 +1,6 @@
 import { chromium, devices } from "playwright";
 
-const URL = process.env.URL || "http://localhost:3000";
+const URL = process.env.URL || "http://localhost:3000/edit";
 const out = process.env.OUT || "shot.png";
 const device = devices["iPhone 15 Pro"];
 

@@ -1,6 +1,6 @@
 import { chromium, devices } from "playwright";
 
-const URL = process.env.URL || "http://localhost:3000";
+const URL = process.env.URL || "http://localhost:3000/edit";
 const DEVICE = process.env.DEVICE || "iPhone 15 Pro";
 const device = devices[DEVICE] || devices["iPhone 15 Pro"];
 
