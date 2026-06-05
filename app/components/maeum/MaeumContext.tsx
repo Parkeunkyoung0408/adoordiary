@@ -10,6 +10,11 @@ import {
   Particle,
   wordSets,
   bucketTypeMeta,
+  createOrderLabels,
+  createOrderProgress,
+  orderLabelPlaceholder,
+  orderUnitsFromProgress,
+  OrderProgress,
 } from "./types";
 
 function useMaeumState() {
@@ -113,12 +118,34 @@ function useMaeumState() {
           const type: BucketType = it.type || "habit";
           const target = bucketTypeMeta[type] ? (it.units?.length || 7) : 7;
           const units: boolean[] = Array.isArray(it.units) ? it.units : Array(target).fill(false);
+          const labels =
+            type === "order"
+              ? (Array.isArray(it.labels) && it.labels.length === units.length
+                  ? it.labels
+                  : createOrderLabels(units.length)
+                ).map((label: string, i: number) =>
+                  label === orderLabelPlaceholder(i) ? "" : label
+                )
+              : undefined;
+          const orderProgress: OrderProgress[] | undefined =
+            type === "order"
+              ? Array.isArray(it.orderProgress) && it.orderProgress.length === units.length
+                ? it.orderProgress
+                : units.map((done: boolean, i: number) => {
+                    if (done) return 2;
+                    if (labels?.[i]?.trim()) return 1;
+                    return 0;
+                  })
+              : undefined;
+          const syncedUnits = type === "order" && orderProgress ? orderUnitsFromProgress(orderProgress) : units;
           return {
             id: it.id,
             text: it.text,
             type,
-            units,
-            completed: units.every(Boolean),
+            units: syncedUnits,
+            labels,
+            orderProgress,
+            completed: type === "order" && orderProgress ? orderProgress.every((step) => step === 2) : syncedUnits.every(Boolean),
             archived: it.archived || false,
             archivedAt: it.archivedAt,
             createdAt: it.createdAt || Date.now(),
@@ -275,6 +302,8 @@ function useMaeumState() {
     text,
     type,
     units: Array(target).fill(false),
+    labels: type === "order" ? createOrderLabels(target) : undefined,
+    orderProgress: type === "order" ? createOrderProgress(target) : undefined,
     completed: false,
     archived: false,
     createdAt: Date.now(),
@@ -301,27 +330,91 @@ function useMaeumState() {
     if (newBucketText.trim()) setNewBucketText("");
   };
 
-  const toggleBucketUnit = (id: string, index: number) => {
-    let justCompleted = false;
-    const updated = bucketItems.map((item) => {
-      if (item.id !== id) return item;
-      const units = item.units.map((u, i) => (i === index ? !u : u));
-      const completed = units.every(Boolean);
-      if (completed && !item.completed) justCompleted = true;
-      return { ...item, units, completed };
+  const updateBucketLabel = (id: string, index: number, label: string) => {
+    setBucketItems((prev) => {
+      const next = prev.map((item) => {
+        if (item.id !== id || item.type !== "order") return item;
+        const labels = [...(item.labels ?? createOrderLabels(item.units.length))];
+        const progress = [...(item.orderProgress ?? createOrderProgress(item.units.length))];
+        labels[index] = label;
+        if (!label.trim() && progress[index] > 0) progress[index] = 0;
+        const units = orderUnitsFromProgress(progress);
+        return {
+          ...item,
+          labels,
+          orderProgress: progress,
+          units,
+          completed: progress.every((step) => step === 2),
+        };
+      });
+      localStorage.setItem("maeum_bucket", JSON.stringify(next));
+      return next;
     });
-    persistBucket(updated);
+  };
 
-    if (justCompleted) {
-      triggerToast("가득 채웠어요! 아카이브에 보관할게요 🕊️");
-      setTimeout(() => {
-        setBucketItems((prev) => {
-          const next = prev.map((it) => (it.id === id ? { ...it, archived: true, archivedAt: Date.now() } : it));
-          localStorage.setItem("maeum_bucket", JSON.stringify(next));
-          return next;
-        });
-      }, 1000);
-    }
+  const handleBucketCompletion = (id: string, justCompleted: boolean) => {
+    if (!justCompleted) return;
+    triggerToast("가득 채웠어요! 아카이브에 보관할게요 🕊️");
+    setTimeout(() => {
+      setBucketItems((prev) => {
+        const next = prev.map((it) => (it.id === id ? { ...it, archived: true, archivedAt: Date.now() } : it));
+        localStorage.setItem("maeum_bucket", JSON.stringify(next));
+        return next;
+      });
+    }, 1000);
+  };
+
+  const advanceOrderProgress = (id: string, index: number) => {
+    setBucketItems((prev) => {
+      const item = prev.find((it) => it.id === id);
+      if (!item || item.type !== "order") return prev;
+
+      const labels = item.labels ?? createOrderLabels(item.units.length);
+      const progress = [...(item.orderProgress ?? createOrderProgress(item.units.length))];
+      const current = progress[index];
+      const label = labels[index]?.trim() ?? "";
+
+      if (current === 0 && !label) {
+        queueMicrotask(() => triggerToast("할 일을 먼저 적어주세요"));
+        return prev;
+      }
+
+      const nextStep: OrderProgress = current === 0 ? 1 : current === 1 ? 2 : 1;
+      progress[index] = nextStep;
+      const units = orderUnitsFromProgress(progress);
+      const completed = progress.every((step) => step === 2);
+      const justCompleted = completed && !item.completed;
+
+      const next = prev.map((it) =>
+        it.id === id ? { ...it, orderProgress: progress, units, completed } : it
+      );
+      localStorage.setItem("maeum_bucket", JSON.stringify(next));
+
+      if (nextStep === 1) queueMicrotask(() => triggerToast("작성 완료! 이제 수행하면 탭해주세요"));
+      if (nextStep === 2 && !justCompleted) queueMicrotask(() => triggerToast("수행 완료! ✓"));
+
+      if (justCompleted) queueMicrotask(() => handleBucketCompletion(id, true));
+      return next;
+    });
+  };
+
+  const toggleBucketUnit = (id: string, index: number) => {
+    setBucketItems((prev) => {
+      const target = prev.find((item) => item.id === id);
+      if (!target) return prev;
+      const nextValue = !target.units[index];
+      let justCompleted = false;
+      const next = prev.map((item) => {
+        if (item.id !== id) return item;
+        const units = item.units.map((u, i) => (i === index ? nextValue : u));
+        const completed = units.every(Boolean);
+        if (completed && !item.completed) justCompleted = true;
+        return { ...item, units, completed };
+      });
+      localStorage.setItem("maeum_bucket", JSON.stringify(next));
+      if (justCompleted) queueMicrotask(() => handleBucketCompletion(id, true));
+      return next;
+    });
   };
 
   const deleteBucketItem = (id: string) => {
@@ -461,6 +554,8 @@ function useMaeumState() {
     addBucketItem,
     addPresetBucket,
     toggleBucketUnit,
+    updateBucketLabel,
+    advanceOrderProgress,
     deleteBucketItem,
     deleteDiaryEntry,
     handleThemeChange,

@@ -12,16 +12,28 @@ export interface DiaryEntry {
 
 export type BucketType = "hydrate" | "mood" | "order" | "habit";
 
+export type OrderProgress = 0 | 1 | 2;
+
 export interface BucketItem {
   id: string;
   text: string;
   type: BucketType;
   units: boolean[];
+  labels?: string[];
+  orderProgress?: OrderProgress[];
   completed: boolean;
   archived?: boolean;
   archivedAt?: number;
   createdAt: number;
 }
+
+export const createOrderLabels = (count: number) => Array<string>(count).fill("");
+
+export const createOrderProgress = (count: number): OrderProgress[] => Array<OrderProgress>(count).fill(0);
+
+export const orderLabelPlaceholder = (index: number) => `우선순위 ${index + 1}`;
+
+export const orderUnitsFromProgress = (progress: OrderProgress[]) => progress.map((step) => step === 2);
 
 export interface Particle {
   id: number;
@@ -62,13 +74,13 @@ export const archiveCardColors: Record<string, { bg: string; ink: string }> = {
 export const bucketTypeMeta: Record<BucketType, { label: string; bg: string; ink: string }> = {
   hydrate: { label: "물마시기", bg: "#BBE6FC", ink: "#2E6DC6" },
   mood: { label: "동그라미", bg: "#FBEAF0", ink: "#FC4B7E" },
-  order: { label: "todo리스트", bg: "#FCDA52", ink: "#DAA428" },
+  order: { label: "해야할일", bg: "#FCDA52", ink: "#DAA428" },
   habit: { label: "체크리스트", bg: "#9CC194", ink: "#5C8049" },
 };
 
 export const bucketPresets: { type: BucketType; phrase: string; target: number }[] = [
   { type: "hydrate", phrase: "물마시기", target: 8 },
   { type: "mood", phrase: "감정 환기", target: 5 },
-  { type: "order", phrase: "todo리스트", target: 3 },
+  { type: "order", phrase: "해야할일", target: 3 },
   { type: "habit", phrase: "체크리스트", target: 7 },
 ];

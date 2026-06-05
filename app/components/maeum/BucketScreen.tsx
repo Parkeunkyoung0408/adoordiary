@@ -3,7 +3,15 @@
 import { useState } from "react";
 import { Plus, Check, X, Droplets } from "lucide-react";
 import { useMaeum } from "./MaeumContext";
-import { BucketItem, bucketTypeMeta, bucketPresets } from "./types";
+import {
+  BucketItem,
+  bucketTypeMeta,
+  bucketPresets,
+  createOrderLabels,
+  createOrderProgress,
+  orderLabelPlaceholder,
+  OrderProgress,
+} from "./types";
 import BucketTypeIcon from "./BucketTypeIcon";
 
 export default function BucketScreen() {
@@ -15,6 +23,8 @@ export default function BucketScreen() {
     bucketItems,
     deleteBucketItem,
     toggleBucketUnit,
+    updateBucketLabel,
+    advanceOrderProgress,
     selectedFullDate,
   } = useMaeum();
 
@@ -78,29 +88,54 @@ export default function BucketScreen() {
       );
     }
 
-    // order
+    // order — 3단계: 0 적기 → 1 작성완료 → 2 수행완료
+    const labels = item.labels ?? createOrderLabels(item.units.length);
+    const progress = item.orderProgress ?? createOrderProgress(item.units.length);
+
+    const stepLabel = (step: OrderProgress) => {
+      if (step === 0) return "작성 전";
+      if (step === 1) return "작성됨";
+      return "수행완료";
+    };
+
     return (
       <div className="space-y-1.5">
-        {item.units.map((on, i) => (
-          <button
-            key={i}
-            type="button"
-            onClick={() => toggleBucketUnit(item.id, i)}
-            className="w-full flex items-center gap-2 text-left transition-all duration-200 active:scale-[0.98]"
-          >
-            <span
-              className="w-6 h-6 rounded-md border-2 flex items-center justify-center text-[11px] font-black shrink-0"
-              style={{ borderColor: ink, backgroundColor: on ? ink : "transparent", color: on ? "#ffffff" : ink }}
+        {progress.map((step, i) => (
+          <div key={i} className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => advanceOrderProgress(item.id, i)}
+              aria-label={`${labels[i] || orderLabelPlaceholder(i)} ${stepLabel(step)}`}
+              className="w-6 h-6 rounded-md border-2 flex items-center justify-center text-[11px] font-black shrink-0 transition-all duration-200 active:scale-90"
+              style={{
+                borderColor: ink,
+                backgroundColor: step === 0 ? "transparent" : step === 1 ? `${ink}44` : ink,
+                color: step === 2 ? "#ffffff" : ink,
+              }}
             >
-              {i + 1}
-            </span>
-            <span
-              className="text-[12px] font-bold"
-              style={{ color: ink, textDecoration: on ? "line-through" : "none", opacity: on ? 0.55 : 1 }}
-            >
-              우선순위 {i + 1}
-            </span>
-          </button>
+              {step === 2 ? <Check className="w-3.5 h-3.5 stroke-[3]" style={{ color: "#ffffff" }} /> : i + 1}
+            </button>
+            <input
+              type="text"
+              value={labels[i] ?? ""}
+              onChange={(e) => updateBucketLabel(item.id, i, e.target.value)}
+              onFocus={(e) => e.target.select()}
+              onClick={(e) => e.stopPropagation()}
+              onPointerDown={(e) => e.stopPropagation()}
+              maxLength={24}
+              disabled={step === 2}
+              className="flex-1 min-w-0 rounded-lg px-2 py-1 text-[12px] font-bold border focus:outline-none placeholder:opacity-50 disabled:opacity-70"
+              style={{
+                color: ink,
+                backgroundColor:
+                  step === 0 ? "rgba(255,255,255,0.55)" : step === 1 ? "rgba(255,255,255,0.75)" : "rgba(255,255,255,0.35)",
+                borderColor: step === 1 ? ink : `${ink}33`,
+                textDecoration: step === 2 ? "line-through" : "none",
+              }}
+              placeholder={orderLabelPlaceholder(i)}
+            />
+            <span className="text-[9px] font-bold shrink-0 w-10 text-right opacity-70">{stepLabel(step)}</span>
+          </div>
         ))}
       </div>
     );
@@ -110,7 +145,10 @@ export default function BucketScreen() {
 
   const renderTrackerCard = (item: BucketItem, idx: number) => {
     const meta = bucketTypeMeta[item.type];
-    const filled = item.units.filter(Boolean).length;
+    const filled =
+      item.type === "order"
+        ? (item.orderProgress ?? createOrderProgress(item.units.length)).filter((step) => step === 2).length
+        : item.units.filter(Boolean).length;
     const total = item.units.length;
     const formattedDate = selectedFullDate ? selectedFullDate.slice(5).replace("-", "월 ") + "일" : "";
 
@@ -168,7 +206,9 @@ export default function BucketScreen() {
         </div>
 
         <div className="relative z-10 flex items-center justify-between mt-3 text-[10px] font-bold">
-          <span>탭하여 채워보세요</span>
+          <span>
+            {item.type === "order" ? "적기 → 번호 탭(작성) → 다시 탭(수행)" : "탭하여 채워보세요"}
+          </span>
           <span>
             {filled} / {total}
           </span>
@@ -240,7 +280,7 @@ export default function BucketScreen() {
                     : preset.type === "mood"
                     ? "5회 순환"
                     : preset.type === "order"
-                    ? "3순위 Todo"
+                    ? "우선순위 3개"
                     : "7개 체크"}
                 </span>
               </button>
