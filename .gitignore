@@ -11,3 +11,7 @@ next-env.d.ts
 
 # local screenshot artifacts
 /shot*.png
+
+# artwork mix platform runtime data
+/.data/
+/public/uploads/
