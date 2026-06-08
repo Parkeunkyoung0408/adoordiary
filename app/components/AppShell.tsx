@@ -17,7 +17,7 @@ function ShellInner({ children }: { children: React.ReactNode }) {
   const { showToast } = useMaeum();
 
   return (
-    <div className="h-full w-full bg-[var(--bg-container)] flex flex-col relative overflow-hidden transition-all duration-300">
+    <div className="flex-1 min-h-0 w-full bg-[var(--bg-container)] flex flex-col relative overflow-hidden transition-all duration-300">
       {/* Top Navigation Header */}
       <div className="shrink-0 px-5 pt-6 pb-3 flex items-center justify-between border-b border-[var(--border-color)] bg-[var(--bg-container)]/80 backdrop-blur-md z-10 transition-colors duration-300">
         <div className="flex items-center gap-2">
@@ -51,7 +51,9 @@ function ShellInner({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* Page Content */}
-      <div className="flex-1 min-h-0 overflow-y-auto relative flex flex-col">{children}</div>
+      <div className="flex-1 min-h-0 basis-0 overflow-y-auto overflow-x-hidden overscroll-y-contain touch-pan-y relative [-webkit-overflow-scrolling:touch]">
+        {children}
+      </div>
 
       {/* Toast Alert Popups */}
       {showToast && (

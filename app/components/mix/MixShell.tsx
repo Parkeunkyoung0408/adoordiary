@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { createContext, useContext, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+
+const TOAST_DURATION_MS = 3000;
 
 const MixToastContext = createContext<{ showToast: (msg: string | null) => void }>({
   showToast: () => {},
@@ -13,13 +15,38 @@ export function useMixToast() {
 
 export default function MixShell({ children }: { children: React.ReactNode }) {
   const [toast, setToast] = useState<string | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showToast = useCallback((msg: string | null) => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    setToast(msg);
+    if (msg) {
+      timerRef.current = setTimeout(() => {
+        setToast(null);
+        timerRef.current = null;
+      }, TOAST_DURATION_MS);
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
 
   return (
-    <MixToastContext.Provider value={{ showToast: setToast }}>
-      <div className="h-full w-full bg-[var(--bg-container)] flex flex-col relative overflow-hidden transition-all duration-300">
+    <MixToastContext.Provider value={{ showToast }}>
+      <div className="flex-1 min-h-0 w-full bg-[var(--bg-container)] flex flex-col relative overflow-hidden transition-all duration-300">
         <div className="shrink-0 px-5 pt-6 pb-3 flex items-center justify-between border-b border-[var(--border-color)] bg-[var(--bg-container)]/80 backdrop-blur-md z-10">
-          <Link href="/mix/edit" aria-label="네 글자 아트웍 믹스">
-            <svg viewBox="0 0 478.89 112.08" fill="#175138" role="img" aria-label="마음써방" className="h-[26px] w-auto">
+          <Link
+            href="/mix/edit"
+            aria-label="나만의 네 글자 아트웍"
+            className="flex items-center gap-1.5 group touch-manipulation [-webkit-tap-highlight-color:transparent]"
+          >
+            <svg viewBox="0 0 478.89 112.08" fill="#175138" role="img" aria-label="마음써방" className="h-[26px] w-auto shrink-0">
               <path d="M67.59,2.35H22.89s-14.9,0-14.9,0c-2.52,0-5.49-.07-7.97.03v102.78s67.61,0,67.61,0V37.25c-.01-11.48.18-23.5-.03-34.9ZM26.39,84.89V22.61s15,0,15,0v62.28s-15,0-15,0Z" />
               <path d="M124.52,69.06c-.07,14.13-.18,28.91.03,43.02h99.17s.26-.17.26-.17c.18-14.07.05-28.76,0-42.86h-99.47ZM197.99,94.33c-5.31.09-10.82.01-16.14.01h-31.16c0-2.75,0-5.49.03-8.23h47.31c-.07,2.68-.02,5.53-.03,8.22Z" />
               <path d="M129.56,36.13c6.55,5.67,14.37,5.65,22.38,5.65h11.07s40.12,0,40.12,0c6.53-.46,13.36-2.11,17.88-7.45,6.41-7.56,6.09-21.31-1.42-27.98C212.34-.15,203.11.44,194.19.45h-15.77s-21.07,0-21.07,0c-3.79,0-7.78-.05-11.59.05-.02,0-.04,0-.06,0-6.68.5-13.59,2.06-18.16,7.63-6.47,7.88-5.74,21.29,2.02,28ZM150.58,19.13c.99-1.32,1.62-1.48,3.18-1.84,2.55-.1,5.45-.03,8.02-.03h14.98s11.25,0,11.25,0c2.49,0,6.64-.37,8.9.68,1.7.78,2.29,3.54,1.3,5.1-.76,1.2-2.12,1.55-3.41,1.78-6.74.25-15.01.03-21.84.03h-11.74c-2.36,0-6.79.29-8.98-.51-1.97-.72-3.04-3.36-1.66-5.21Z" />
@@ -31,13 +58,21 @@ export default function MixShell({ children }: { children: React.ReactNode }) {
               <path d="M321.13,0v36.67s-14.18,0-14.18,0v20.42s14.17,0,14.17,0v54.91s10.87,0,10.87,0h13.18s-.02-111.98-.02-111.98c-7.98-.03-16.07.09-24.03-.03Z" />
               <path d="M478.78,18.49c-.77-.64-11.42-.31-13.3-.36V.01s-26.33,0-26.33,0c-.18,19.36.21,38.94-.07,58.29h26.38s0-14.6,0-14.6v-5.36s13.41.04,13.41.04v-13.36c0-1.44.11-5.35-.08-6.52Z" />
             </svg>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/assets/mix/puppy-head.png"
+              alt="약사 팍맹수"
+              className="h-[44.2px] -ml-[5px] w-auto object-contain object-center mix-blend-multiply select-none shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 group-active:scale-110 group-active:rotate-6"
+            />
           </Link>
           <Link href="/edit" className="text-[11px] font-bold text-[var(--nav-active-text)] hover:underline">
             마음써방으로
           </Link>
         </div>
 
-        <div className="flex-1 min-h-0 overflow-y-auto relative flex flex-col">{children}</div>
+        <div className="flex-1 min-h-0 basis-0 overflow-y-auto overflow-x-hidden overscroll-y-contain touch-pan-y relative [-webkit-overflow-scrolling:touch]">
+          {children}
+        </div>
 
         {toast && (
           <div className="absolute top-16 left-1/2 -translate-x-1/2 px-4 py-2.5 bg-black/85 text-white rounded-full text-[12px] font-medium z-50 shadow-md animate-pop flex items-center gap-1.5 whitespace-nowrap">

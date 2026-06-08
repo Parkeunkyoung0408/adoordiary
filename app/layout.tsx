@@ -10,7 +10,8 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
-  themeColor: "#f4f3ef",
+  viewportFit: "cover",
+  themeColor: "#f1f1f3",
 };
 
 export default function RootLayout({
@@ -28,10 +29,10 @@ export default function RootLayout({
           href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
         />
       </head>
-      <body className="min-h-screen w-full flex items-center justify-center bg-[var(--bg-app)] transition-colors duration-300 p-0 sm:p-6 overflow-hidden">
+      <body className="h-dvh w-full flex items-center justify-center bg-[var(--bg-app)] transition-colors duration-300 p-0 sm:p-6 overflow-hidden">
         {/* Beautiful Device frame container for desktop viewports */}
-        <div className="w-full max-w-[402px] h-full sm:h-[840px] sm:rounded-[36px] sm:border-[8px] sm:border-[#2d2d32] sm:shadow-[0_20px_50px_rgba(0,0,0,0.18)] bg-[var(--bg-container)] relative overflow-hidden flex flex-col transition-all duration-300">
-          {children}
+        <div className="w-full max-w-[402px] h-dvh sm:h-[840px] sm:rounded-[36px] sm:border-[8px] sm:border-[#2d2d32] sm:shadow-[0_20px_50px_rgba(0,0,0,0.18)] bg-[var(--bg-container)] relative overflow-hidden flex flex-col transition-all duration-300">
+          <div className="flex-1 min-h-0 w-full flex flex-col overflow-hidden">{children}</div>
         </div>
       </body>
     </html>
