@@ -65,9 +65,6 @@ export default function MixShell({ children }: { children: React.ReactNode }) {
               className="h-[44.2px] -ml-[5px] w-auto object-contain object-center mix-blend-multiply select-none shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 group-active:scale-110 group-active:rotate-6"
             />
           </Link>
-          <Link href="/edit" className="text-[11px] font-bold text-[var(--nav-active-text)] hover:underline">
-            마음써방으로
-          </Link>
         </div>
 
         <div className="flex-1 min-h-0 basis-0 overflow-y-auto overflow-x-hidden overscroll-y-contain touch-pan-y relative [-webkit-overflow-scrolling:touch]">
