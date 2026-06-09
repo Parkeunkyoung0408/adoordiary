@@ -13,13 +13,13 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   viewportFit: "cover",
-  themeColor: "#3A2B20",
+  themeColor: "#222222",
 };
 
 export default function FlipLayout({ children }: { children: React.ReactNode }) {
   return (
     <div
-      className={`${robotoMono.className} fixed inset-0 z-[300] flex flex-col w-screen h-dvh max-w-none overflow-visible bg-[#3A2B20] sm:rounded-none sm:border-0 sm:shadow-none`}
+      className={`${robotoMono.className} fixed inset-0 z-[300] flex flex-col w-screen h-dvh max-w-none overflow-visible bg-[#222222] sm:rounded-none sm:border-0 sm:shadow-none`}
     >
       {children}
     </div>
