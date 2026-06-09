@@ -12,11 +12,11 @@ export default function FlipBrandTitle() {
       <img
         src="/assets/flip/gugak-cheobang-logo.png"
         alt="국악처방"
-        width={120}
-        height={120}
+        width={240}
+        height={240}
         decoding="async"
         draggable={false}
-        className="block h-auto w-[120px] max-w-[28vw]"
+        className="block h-auto w-[240px] max-w-[40vw]"
       />
     </div>
   );
