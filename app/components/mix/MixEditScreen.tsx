@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Edit3, RotateCw, Sparkles } from "lucide-react";
 import { wordSets } from "../maeum/types";
+import MixEditPromoVideo from "./MixEditPromoVideo";
 import MixPageIntro from "./MixPageIntro";
 import { saveMixText } from "./mixStorage";
 import { isValidFourLetters, sanitizeFourLettersInput } from "./validation";
@@ -191,6 +192,8 @@ export default function MixEditScreen() {
             </button>
           </div>
         </section>
+
+        <MixEditPromoVideo />
       </div>
 
       {showInvalidPopup && (
