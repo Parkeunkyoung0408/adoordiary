@@ -37,34 +37,40 @@ function getWheelDiameter(cardSize: { width: number; height: number }, cardCount
   return Math.ceil(getWheelLayoutRadius(cardSize, cardCount) * 2);
 }
 
-/** CodePen처럼 모든 카드가 동일한 중앙 위치에서 플립 */
+/** 휠 위 레이어 중앙 — 클릭 카드가 휠 앞에 떠 있는 느낌 */
 function setExpandedVisualPosition(visual: HTMLElement, expandedSize: { width: number; height: number }) {
+  visual.style.width = `${expandedSize.width}px`;
+  visual.style.height = `${expandedSize.height}px`;
   gsap.set(visual, {
     position: "absolute",
     left: "50%",
     top: "50%",
     xPercent: -50,
     yPercent: -50,
-    width: expandedSize.width,
-    height: expandedSize.height,
+    scale: 1,
     margin: 0,
     right: "auto",
     bottom: "auto",
+    zIndex: 200,
+    boxShadow: "0 24px 48px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.08)",
   });
 }
 
 function resetWheelVisualStyles(visual: HTMLElement, wheelSize: { width: number; height: number }) {
+  visual.style.width = `${wheelSize.width}px`;
+  visual.style.height = `${wheelSize.height}px`;
   gsap.set(visual, {
     position: "relative",
     left: "auto",
     top: "auto",
     xPercent: 0,
     yPercent: 0,
-    width: wheelSize.width,
-    height: wheelSize.height,
+    scale: 1,
     margin: 0,
     right: "auto",
     bottom: "auto",
+    zIndex: "auto",
+    boxShadow: "0 6px 20px rgba(0,0,0,0.45)",
   });
 }
 
@@ -73,28 +79,14 @@ type CardSizes = {
   expanded: { width: number; height: number };
 };
 
-function computeCardSizes(
-  devicePixelRatio: number,
-  viewportWidth: number,
-  viewportHeight: number
-): CardSizes {
+function computeCardSizes(devicePixelRatio: number): CardSizes {
   const sharp = getTextCardDisplaySize(devicePixelRatio);
   const wheelWidth = Math.min(210, Math.round(sharp.width * 0.26 * WHEEL_SIZE_SCALE));
   const wheelHeight = Math.round(wheelWidth * CARD_ASPECT);
 
-  const maxExpandedWidth = Math.max(120, viewportWidth - 32);
-  const maxExpandedHeight = Math.max(160, Math.floor(viewportHeight * 0.34));
-  let expandedWidth = Math.min(sharp.width, maxExpandedWidth);
-  let expandedHeight = Math.round(expandedWidth * CARD_ASPECT);
-
-  if (expandedHeight > maxExpandedHeight) {
-    expandedHeight = maxExpandedHeight;
-    expandedWidth = Math.round(expandedHeight / CARD_ASPECT);
-  }
-
   return {
     wheel: { width: wheelWidth, height: wheelHeight },
-    expanded: { width: expandedWidth, height: expandedHeight },
+    expanded: { width: wheelWidth * 2, height: wheelHeight * 2 },
   };
 }
 
@@ -155,9 +147,9 @@ function CardImageFace({
 
 export default function FlipDeckPage() {
   const [order, setOrder] = useState<FlipCardConfig[]>(flipCardConfigList);
-  const [cardSizes, setCardSizes] = useState<CardSizes>(() => computeCardSizes(2, 390, 844));
+  const [cardSizes, setCardSizes] = useState<CardSizes>(() => computeCardSizes(2));
 
-  const headerRef = useRef<HTMLDivElement>(null);
+  const expandedLayerRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrollSpacerRef = useRef<HTMLDivElement>(null);
   const wheelRef = useRef<HTMLDivElement>(null);
@@ -229,14 +221,24 @@ export default function FlipDeckPage() {
 
   useEffect(() => {
     const updateSize = () => {
-      setCardSizes(
-        computeCardSizes(window.devicePixelRatio || 1, window.innerWidth, window.innerHeight)
-      );
+      setCardSizes(computeCardSizes(window.devicePixelRatio || 1));
     };
     updateSize();
     window.addEventListener("resize", updateSize);
     return () => window.removeEventListener("resize", updateSize);
   }, []);
+
+  useLayoutEffect(() => {
+    const expandedLayer = expandedLayerRef.current;
+    visualRefs.current.forEach((visual, id) => {
+      if (expandedLayer?.contains(visual) && activeIdRef.current === id) {
+        setExpandedVisualPosition(visual, cardSizes.expanded);
+        return;
+      }
+      visual.style.width = `${cardSizes.wheel.width}px`;
+      visual.style.height = `${cardSizes.wheel.height}px`;
+    });
+  }, [cardSizes]);
 
   const layoutWheelCards = useCallback(() => {
     const wheel = wheelRef.current;
@@ -348,9 +350,9 @@ export default function FlipDeckPage() {
       const slot = activeSlotRef.current;
       const visual = cardId !== null ? visualRefs.current.get(cardId) : null;
       const inner = cardId !== null ? innerRefs.current.get(cardId) : null;
-      const header = headerRef.current;
+      const expandedLayer = expandedLayerRef.current;
 
-      if (!cardId || !slot || !visual || !inner || !header) {
+      if (!cardId || !slot || !visual || !inner || !expandedLayer) {
         onComplete?.();
         return;
       }
@@ -372,8 +374,10 @@ export default function FlipDeckPage() {
           Flip.from(state, {
             ...FLIP_MOVE,
             absolute: true,
+            scale: true,
             overwrite: true,
             onComplete: () => {
+              resetWheelVisualStyles(visual, wheelSize);
               activeIdRef.current = null;
               activeSlotRef.current = null;
               busyRef.current = false;
@@ -406,8 +410,8 @@ export default function FlipDeckPage() {
 
       const visual = visualRefs.current.get(cardId);
       const inner = innerRefs.current.get(cardId);
-      const header = headerRef.current;
-      if (!visual || !inner || !header) return;
+      const expandedLayer = expandedLayerRef.current;
+      if (!visual || !inner || !expandedLayer) return;
 
       busyRef.current = true;
       setWheelInteractive(false);
@@ -416,16 +420,19 @@ export default function FlipDeckPage() {
       activeSlotRef.current = slot;
 
       gsap.set(inner, { rotateY: 0 });
+      gsap.set(visual, { zIndex: 200 });
 
       const state = Flip.getState(visual);
-      header.appendChild(visual);
+      expandedLayer.appendChild(visual);
       setExpandedVisualPosition(visual, expandedSize);
 
       Flip.from(state, {
         ...FLIP_MOVE,
         absolute: true,
+        scale: true,
         overwrite: true,
         onComplete: () => {
+          setExpandedVisualPosition(visual, expandedSize);
           gsap.to(inner, {
             rotateY: 180,
             ...FLIP_ROTATE,
@@ -472,23 +479,19 @@ export default function FlipDeckPage() {
         <FlipBrandTitle />
 
         <div
-          ref={headerRef}
-          className="fixed inset-x-0 z-20 flex items-center justify-center overflow-visible pointer-events-none"
-          style={{
-            top: "max(6dvh, calc(env(safe-area-inset-top) + 16px))",
-            height: "38dvh",
-            minHeight: "220px",
-          }}
-          aria-hidden
-        />
-
-        <div
           className="pointer-events-none fixed left-1/2 z-50 flex flex-col items-center gap-2 -translate-x-1/2"
           style={{ bottom: "max(56px, calc(env(safe-area-inset-bottom) + 48px))" }}
         >
           <p className="text-[13px] font-semibold tracking-[0.22em] text-white uppercase">스크롤</p>
           <ChevronDown className="flip-scroll-arrow w-5 h-5 text-white" />
         </div>
+
+        <div
+          ref={expandedLayerRef}
+          className="pointer-events-none fixed inset-x-0 z-[60] h-[50dvh] min-h-[300px] overflow-visible relative"
+          style={{ bottom: 0, transform: "translateY(30px)" }}
+          aria-hidden
+        />
 
         <section
           ref={wheelSectionRef}
@@ -528,7 +531,7 @@ export default function FlipDeckPage() {
                     if (el) visualRefs.current.set(card.id, el);
                   }}
                   tabIndex={-1}
-                  className="relative block w-full h-full rounded-xl overflow-hidden shadow-[0_6px_20px_rgba(0,0,0,0.45)] [-webkit-tap-highlight-color:transparent] focus:outline-none pointer-events-none"
+                  className="relative block rounded-xl overflow-hidden shadow-[0_6px_20px_rgba(0,0,0,0.45)] [-webkit-tap-highlight-color:transparent] focus:outline-none pointer-events-none"
                   style={{ perspective: 1200 }}
                   aria-label={`카드 ${card.id}`}
                 >
