@@ -23,8 +23,8 @@ const FLIP_ROTATE = { duration: 0.5, ease: "power2.inOut" as const };
 const WHEEL_SIZE_SCALE = 2.2;
 const WHEEL_CARD_GAP = 18;
 const CARD_ASPECT = FLIP_BACK_HEIGHT / FLIP_BACK_WIDTH;
-/** 확대 카드 세로 앵커 — 화면 높이 1/3 지점(중심) */
-const EXPANDED_CARD_TOP = "33dvh";
+/** 확대 카드 세로 앵커 — 1/3 지점에서 약 1/2만큼 더 아래 */
+const EXPANDED_CARD_TOP = "50dvh";
 
 function getWheelCardSpan(size: { width: number; height: number }) {
   return Math.max(size.width, size.height * 0.82);
@@ -122,9 +122,10 @@ function CardImageFace({
 
   return (
     <div
-      className="absolute inset-0 overflow-hidden bg-white flex items-center justify-center rounded-xl"
+      className="absolute inset-0 overflow-visible bg-white flex items-center justify-center rounded-xl"
       style={{
         backfaceVisibility: "hidden",
+        WebkitBackfaceVisibility: "hidden",
         transform: isBack ? "rotateY(180deg)" : undefined,
       }}
     >
@@ -175,48 +176,6 @@ export default function FlipDeckPage() {
       card.style.pointerEvents = enabled ? "auto" : "none";
     });
   }, []);
-
-  const expandedPointerStartY = useRef(0);
-  const expandedCloseRef = useRef<{
-    visual: HTMLButtonElement;
-    onPointerDown: (e: PointerEvent) => void;
-    onPointerUp: (e: PointerEvent) => void;
-  } | null>(null);
-  const putBackRef = useRef<(onComplete?: () => void) => void>(() => {});
-
-  const clearExpandedCardClose = useCallback(() => {
-    const binding = expandedCloseRef.current;
-    if (!binding) return;
-    binding.visual.removeEventListener("pointerdown", binding.onPointerDown);
-    binding.visual.removeEventListener("pointerup", binding.onPointerUp);
-    binding.visual.style.pointerEvents = "none";
-    binding.visual.style.cursor = "";
-    expandedCloseRef.current = null;
-  }, []);
-
-  const bindExpandedCardClose = useCallback(
-    (visual: HTMLButtonElement) => {
-      clearExpandedCardClose();
-
-      const onPointerDown = (e: PointerEvent) => {
-        expandedPointerStartY.current = e.clientY;
-      };
-      const onPointerUp = (e: PointerEvent) => {
-        if (e.button !== 0) return;
-        if (Math.abs(e.clientY - expandedPointerStartY.current) > 12) return;
-        if (busyRef.current || activeIdRef.current === null) return;
-        e.stopPropagation();
-        putBackRef.current();
-      };
-
-      visual.addEventListener("pointerdown", onPointerDown);
-      visual.addEventListener("pointerup", onPointerUp);
-      visual.style.pointerEvents = "auto";
-      visual.style.cursor = "pointer";
-      expandedCloseRef.current = { visual, onPointerDown, onPointerUp };
-    },
-    [clearExpandedCardClose]
-  );
 
   const { wheel: wheelSize, expanded: expandedSize } = cardSizes;
   const wheelDiameter = getWheelDiameter(wheelSize, order.length);
@@ -335,8 +294,6 @@ export default function FlipDeckPage() {
     };
   }, [order, layoutWheelCards, wheelDiameter, wheelSize.height, wheelSize.width]);
 
-  useEffect(() => () => clearExpandedCardClose(), [clearExpandedCardClose]);
-
   useEffect(() => {
     gsap.to(".flip-scroll-arrow", {
       y: 5,
@@ -361,7 +318,6 @@ export default function FlipDeckPage() {
 
       busyRef.current = true;
       setWheelInteractive(false);
-      clearExpandedCardClose();
       killCardTweens(cardId);
 
       gsap.to(inner, {
@@ -391,25 +347,11 @@ export default function FlipDeckPage() {
         },
       });
     },
-    [clearExpandedCardClose, killCardTweens, layoutWheelCards, setWheelInteractive, wheelSize.height, wheelSize.width]
+    [killCardTweens, layoutWheelCards, setWheelInteractive, wheelSize.height, wheelSize.width]
   );
 
-  putBackRef.current = putBack;
-
-  const openCard = useCallback(
+  const openCardDirect = useCallback(
     (cardId: number, slot: HTMLDivElement) => {
-      if (busyRef.current) return;
-
-      if (activeIdRef.current === cardId) {
-        putBack();
-        return;
-      }
-
-      if (activeIdRef.current !== null) {
-        putBack();
-        return;
-      }
-
       const visual = visualRefs.current.get(cardId);
       const inner = innerRefs.current.get(cardId);
       const expandedLayer = expandedLayerRef.current;
@@ -441,20 +383,29 @@ export default function FlipDeckPage() {
             overwrite: true,
             onComplete: () => {
               busyRef.current = false;
-              bindExpandedCardClose(visual);
+              setWheelInteractive(true);
             },
           });
         },
       });
     },
-    [
-      bindExpandedCardClose,
-      expandedSize.height,
-      expandedSize.width,
-      killCardTweens,
-      putBack,
-      setWheelInteractive,
-    ]
+    [expandedSize.height, expandedSize.width, killCardTweens, setWheelInteractive]
+  );
+
+  const openCard = useCallback(
+    (cardId: number, slot: HTMLDivElement) => {
+      if (busyRef.current) return;
+
+      if (activeIdRef.current === cardId) return;
+
+      if (activeIdRef.current !== null) {
+        putBack(() => openCardDirect(cardId, slot));
+        return;
+      }
+
+      openCardDirect(cardId, slot);
+    },
+    [openCardDirect, putBack]
   );
 
   const handleShuffle = useCallback(() => {
@@ -532,16 +483,16 @@ export default function FlipDeckPage() {
                     if (el) visualRefs.current.set(card.id, el);
                   }}
                   tabIndex={-1}
-                  className="relative block rounded-xl overflow-hidden shadow-[0_6px_20px_rgba(0,0,0,0.45)] [-webkit-tap-highlight-color:transparent] focus:outline-none pointer-events-none"
-                  style={{ perspective: 1200 }}
+                  className="relative block rounded-xl overflow-visible shadow-[0_6px_20px_rgba(0,0,0,0.45)] [-webkit-tap-highlight-color:transparent] focus:outline-none pointer-events-none"
+                  style={{ perspective: 1400, transformStyle: "preserve-3d" }}
                   aria-label={`카드 ${card.id}`}
                 >
                   <div
                     ref={(el) => {
                       if (el) innerRefs.current.set(card.id, el);
                     }}
-                    className="relative w-full h-full"
-                    style={{ transformStyle: "preserve-3d" }}
+                    className="relative w-full h-full rounded-xl"
+                    style={{ transformStyle: "preserve-3d", transformOrigin: "center center" }}
                   >
                     <CardImageFace
                       src={card.frontSrc}
