@@ -438,7 +438,7 @@ export default function FlipDeckPage() {
   return (
     <div
       ref={scrollRef}
-      className="relative h-full min-h-0 overflow-y-auto overscroll-contain touch-pan-y [-webkit-overflow-scrolling:touch] text-white bg-black"
+      className="relative h-full min-h-0 overflow-y-auto overscroll-contain touch-pan-y [-webkit-overflow-scrolling:touch] text-white bg-[#3A2B20]"
     >
       <div ref={scrollSpacerRef} className="relative pb-[44dvh]">
         <FlipBrandTitle />
