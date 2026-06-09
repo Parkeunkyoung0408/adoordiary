@@ -11,7 +11,6 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCE_DIR = ROOT.parent / "final" / "수정"
 POSTCARD_PDF = SOURCE_DIR / "260609_postcard_긍정뷔페.pdf"
 CARDS_DIR = ROOT / "public" / "assets" / "flip" / "cards"
-ARTWORKS_DIR = ROOT / "public" / "assets" / "artworks"
 
 # 앞·뒷면 모두 최신 postcard PDF(홀수=앞, 짝수=뒤)에서 동일 배율로 추출
 ZOOM = 11
@@ -26,7 +25,6 @@ def save_jpg(pix: fitz.Pixmap, dest: Path) -> tuple[int, int]:
 def main() -> None:
     post_doc = fitz.open(POSTCARD_PDF)
     CARDS_DIR.mkdir(parents=True, exist_ok=True)
-    ARTWORKS_DIR.mkdir(parents=True, exist_ok=True)
     matrix = fitz.Matrix(ZOOM, ZOOM)
 
     for card_id in range(1, 17):
@@ -39,7 +37,6 @@ def main() -> None:
 
         front_size = save_jpg(front_pix, CARDS_DIR / f"card_{pad}_front.jpg")
         back_size = save_jpg(back_pix, CARDS_DIR / f"card_{pad}_back.jpg")
-        save_jpg(front_pix, ARTWORKS_DIR / f"artwork_{pad}.jpg")
         print(f"card {pad}: front {front_size}, back {back_size}")
 
     post_doc.close()
