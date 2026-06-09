@@ -61,6 +61,7 @@ function setExpandedVisualPosition(visual: HTMLElement, expandedSize: { width: n
 function resetWheelVisualStyles(visual: HTMLElement, wheelSize: { width: number; height: number }) {
   visual.style.width = `${wheelSize.width}px`;
   visual.style.height = `${wheelSize.height}px`;
+  visual.style.pointerEvents = "none";
   gsap.set(visual, {
     position: "relative",
     left: "auto",
@@ -151,6 +152,7 @@ function CardImageFace({
 export default function FlipDeckPage() {
   const [order, setOrder] = useState<FlipCardConfig[]>(flipCardConfigList);
   const [cardSizes, setCardSizes] = useState<CardSizes>(() => computeCardSizes(2));
+  const [isDismissBackdropActive, setIsDismissBackdropActive] = useState(false);
 
   const expandedLayerRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -342,6 +344,9 @@ export default function FlipDeckPage() {
               setWheelInteractive(true);
               layoutWheelCards();
               onComplete?.();
+              if (activeIdRef.current === null) {
+                setIsDismissBackdropActive(false);
+              }
             },
           });
         },
@@ -384,6 +389,8 @@ export default function FlipDeckPage() {
             onComplete: () => {
               busyRef.current = false;
               setWheelInteractive(true);
+              visual.style.pointerEvents = "auto";
+              setIsDismissBackdropActive(true);
             },
           });
         },
@@ -391,6 +398,11 @@ export default function FlipDeckPage() {
     },
     [expandedSize.height, expandedSize.width, killCardTweens, setWheelInteractive]
   );
+
+  const handleDismissBackdrop = useCallback(() => {
+    if (busyRef.current || activeIdRef.current === null) return;
+    putBack();
+  }, [putBack]);
 
   const openCard = useCallback(
     (cardId: number, slot: HTMLDivElement) => {
@@ -439,16 +451,34 @@ export default function FlipDeckPage() {
           <ChevronDown className="flip-scroll-arrow w-5 h-5 text-white" />
         </div>
 
+        {isDismissBackdropActive ? (
+          <button
+            type="button"
+            aria-label="카드 닫기"
+            className="fixed inset-0 z-[55] touch-manipulation bg-transparent cursor-default"
+            onPointerUp={(e) => {
+              if (e.button !== 0) return;
+              e.preventDefault();
+              handleDismissBackdrop();
+            }}
+          />
+        ) : null}
+
         <div
           ref={expandedLayerRef}
-          className="pointer-events-none fixed inset-0 z-[60] overflow-visible"
+          className="pointer-events-none fixed inset-0 overflow-visible"
+          style={{ zIndex: isDismissBackdropActive ? 70 : 60 }}
           aria-hidden
         />
 
         <section
           ref={wheelSectionRef}
-          className="pointer-events-none fixed inset-x-0 z-40 h-[44dvh] min-h-[280px] overflow-visible"
-          style={{ bottom: 0, transform: "translateY(30px)" }}
+          className="pointer-events-none fixed inset-x-0 h-[44dvh] min-h-[280px] overflow-visible"
+          style={{
+            bottom: 0,
+            transform: "translateY(30px)",
+            zIndex: isDismissBackdropActive ? 65 : 40,
+          }}
         >
           <div className="relative h-full w-full">
             <div
