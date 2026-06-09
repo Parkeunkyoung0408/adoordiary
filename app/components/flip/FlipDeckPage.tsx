@@ -23,6 +23,8 @@ const FLIP_ROTATE = { duration: 0.5, ease: "power2.inOut" as const };
 const WHEEL_SIZE_SCALE = 2.2;
 const WHEEL_CARD_GAP = 18;
 const CARD_ASPECT = FLIP_BACK_HEIGHT / FLIP_BACK_WIDTH;
+/** 확대 카드 세로 앵커 — 화면 높이 1/3 지점(중심) */
+const EXPANDED_CARD_TOP = "33dvh";
 
 function getWheelCardSpan(size: { width: number; height: number }) {
   return Math.max(size.width, size.height * 0.82);
@@ -37,14 +39,14 @@ function getWheelDiameter(cardSize: { width: number; height: number }, cardCount
   return Math.ceil(getWheelLayoutRadius(cardSize, cardCount) * 2);
 }
 
-/** 휠 위 레이어 중앙 — 클릭 카드가 휠 앞에 떠 있는 느낌 */
+/** 화면 1/3 높이에 고정 — 2배 확대 시에도 카드가 잘 보이게 */
 function setExpandedVisualPosition(visual: HTMLElement, expandedSize: { width: number; height: number }) {
   visual.style.width = `${expandedSize.width}px`;
   visual.style.height = `${expandedSize.height}px`;
   gsap.set(visual, {
-    position: "absolute",
+    position: "fixed",
     left: "50%",
-    top: "50%",
+    top: EXPANDED_CARD_TOP,
     xPercent: -50,
     yPercent: -50,
     scale: 1,
@@ -488,8 +490,7 @@ export default function FlipDeckPage() {
 
         <div
           ref={expandedLayerRef}
-          className="pointer-events-none fixed inset-x-0 z-[60] h-[50dvh] min-h-[300px] overflow-visible relative"
-          style={{ bottom: 0, transform: "translateY(30px)" }}
+          className="pointer-events-none fixed inset-0 z-[60] overflow-visible"
           aria-hidden
         />
 
