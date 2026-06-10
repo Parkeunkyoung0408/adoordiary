@@ -27,13 +27,13 @@ run([
   "-i",
   src,
   "-vf",
-  "scale=320:320:flags=lanczos",
+  "scale=400:400:flags=lanczos",
   "-c:v",
   "libx264",
   "-preset",
   "slow",
   "-crf",
-  "28",
+  "24",
   "-pix_fmt",
   "yuv420p",
   "-an",
@@ -43,7 +43,7 @@ run([
 ]);
 
 console.log("Extracting poster frame...");
-run(["-y", "-i", src, "-frames:v", "1", "-vf", "scale=320:320", "-c:v", "libwebp", "-quality", "75", outPoster]);
+run(["-y", "-i", src, "-frames:v", "1", "-vf", "scale=400:400", "-c:v", "libwebp", "-quality", "82", outPoster]);
 
 const videoSize = fs.statSync(outVideo).size;
 const posterSize = fs.statSync(outPoster).size;

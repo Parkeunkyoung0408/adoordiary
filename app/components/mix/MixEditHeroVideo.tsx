@@ -2,8 +2,8 @@
 
 import { useEffect, useRef } from "react";
 
-const VIDEO_SRC = "/assets/mix/mix-edit-hero.mp4?v=2";
-const POSTER_SRC = "/assets/mix/mix-edit-hero-poster.webp?v=2";
+const VIDEO_SRC = "/assets/mix/mix-edit-hero.mp4?v=3";
+const POSTER_SRC = "/assets/mix/mix-edit-hero-poster.webp?v=3";
 
 export default function MixEditHeroVideo() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -25,9 +25,8 @@ export default function MixEditHeroVideo() {
   }, []);
 
   return (
-    <div className="w-full max-w-[280px] mx-auto py-1">
-      {/* Safari: mix-blend-mode는 video가 아닌 wrapper에 적용 */}
-      <div className="relative aspect-square mix-blend-screen [transform:translateZ(0)]">
+    <div className="w-full max-w-[300px] mx-auto">
+      <div className="relative aspect-square rounded-[24px] overflow-hidden bg-black shadow-[0_8px_24px_rgba(0,0,0,0.12)]">
         <video
           ref={videoRef}
           src={VIDEO_SRC}
