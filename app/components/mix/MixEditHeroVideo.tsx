@@ -26,7 +26,7 @@ export default function MixEditHeroVideo() {
 
   return (
     <div className="w-full max-w-[300px] mx-auto">
-      <div className="relative aspect-square rounded-[24px] overflow-hidden bg-black shadow-[0_8px_24px_rgba(0,0,0,0.12)]">
+      <div className="relative aspect-square rounded-[24px] overflow-hidden bg-white shadow-[0_8px_24px_rgba(0,0,0,0.08)]">
         <video
           ref={videoRef}
           src={VIDEO_SRC}
