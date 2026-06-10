@@ -91,13 +91,14 @@ export default function MixEditScreen() {
           <MixPageIntro step="STEP 1 - 네 글자 입력하기" />
         </div>
 
-        <section
-          className="rounded-[32px] px-5 py-6 border border-white shadow-[0_20px_50px_rgba(22,66,41,0.08)] backdrop-blur-xl relative overflow-hidden transition-all duration-300"
-          style={{
-            background: "linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(250, 248, 245, 0.96) 100%)",
-            boxShadow: "0 20px 50px rgba(22, 66, 41, 0.08), inset 0 1px 2px rgba(255, 255, 255, 0.9)",
-          }}
-        >
+        <div>
+          <section
+            className="rounded-[32px] px-5 py-6 border border-white shadow-[0_20px_50px_rgba(22,66,41,0.08)] backdrop-blur-xl relative overflow-hidden transition-all duration-300"
+            style={{
+              background: "linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(250, 248, 245, 0.96) 100%)",
+              boxShadow: "0 20px 50px rgba(22, 66, 41, 0.08), inset 0 1px 2px rgba(255, 255, 255, 0.9)",
+            }}
+          >
           <div className="text-center mb-2">
             <h2 className="text-[19px] font-black text-[#175138] tracking-tight">네 글자로 써보는 지금 내 생각!</h2>
             <p className="text-[12px] font-semibold text-[var(--text-muted)] mt-1 opacity-90">16종의 아트웍에 네 글자를 섞어드려요</p>
@@ -191,9 +192,10 @@ export default function MixEditScreen() {
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
-        </section>
+          </section>
 
-        <MixEditHeroVideo />
+          <MixEditHeroVideo />
+        </div>
       </div>
 
       {showInvalidPopup && (
