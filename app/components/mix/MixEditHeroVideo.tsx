@@ -2,8 +2,8 @@
 
 import { useEffect, useRef } from "react";
 
-const VIDEO_SRC = "/assets/mix/mix-edit-hero.mp4?v=3";
-const POSTER_SRC = "/assets/mix/mix-edit-hero-poster.webp?v=3";
+const VIDEO_SRC = "/assets/mix/mix-edit-hero.mp4?v=4";
+const POSTER_SRC = "/assets/mix/mix-edit-hero-poster.webp?v=4";
 
 export default function MixEditHeroVideo() {
   const videoRef = useRef<HTMLVideoElement>(null);
