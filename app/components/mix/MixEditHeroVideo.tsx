@@ -2,8 +2,8 @@
 
 import { useEffect, useRef } from "react";
 
-const VIDEO_SRC = "/assets/mix/mix-edit-hero.mp4?v=4";
-const POSTER_SRC = "/assets/mix/mix-edit-hero-poster.webp?v=4";
+const VIDEO_SRC = "/assets/mix/mix-edit-hero.mp4?v=5";
+const POSTER_SRC = "/assets/mix/mix-edit-hero-poster.webp?v=5";
 
 export default function MixEditHeroVideo() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -25,21 +25,17 @@ export default function MixEditHeroVideo() {
   }, []);
 
   return (
-    <div className="w-full max-w-[300px] mx-auto">
-      <div className="relative aspect-square rounded-[24px] overflow-hidden bg-white shadow-[0_8px_24px_rgba(0,0,0,0.08)]">
-        <video
-          ref={videoRef}
-          src={VIDEO_SRC}
-          poster={POSTER_SRC}
-          muted
-          playsInline
-          autoPlay
-          loop
-          preload="auto"
-          className="absolute inset-0 w-full h-full object-contain block"
-          aria-label="아두르 아트웍 소개 영상"
-        />
-      </div>
-    </div>
+    <video
+      ref={videoRef}
+      src={VIDEO_SRC}
+      poster={POSTER_SRC}
+      muted
+      playsInline
+      autoPlay
+      loop
+      preload="auto"
+      className="w-full max-w-[300px] h-auto block mx-auto aspect-square object-contain"
+      aria-label="아두르 아트웍 소개 영상"
+    />
   );
 }
