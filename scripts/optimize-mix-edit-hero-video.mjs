@@ -6,7 +6,7 @@ import ffmpegPath from "ffmpeg-static";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
-const src = path.join(root, "magnific_l7fmTNJgv9.mp4");
+const src = path.join(root, "magnific_43KHKrz9Aa.mp4");
 const outDir = path.join(root, "public", "assets", "mix");
 const outVideo = path.join(outDir, "mix-edit-hero.mp4");
 const outPoster = path.join(outDir, "mix-edit-hero-poster.webp");
