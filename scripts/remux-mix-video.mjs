@@ -6,7 +6,7 @@ import ffmpegPath from "ffmpeg-static";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
-const src = path.join(root, "magnific_1b5a3c_74FCIkAJAL.mp4");
+const src = path.join(root, "magnific_1b5a3c_74FCKBCJAL.mp4");
 const outDir = path.join(root, "public", "assets", "mix");
 const out = path.join(outDir, "mix-loading-fast.mp4");
 
@@ -20,7 +20,7 @@ function run(args) {
   }
 }
 
-console.log("Encoding mix-loading-fast.mp4 from magnific_1b5a3c_74FCIkAJAL.mp4...");
+console.log("Encoding mix-loading-fast.mp4 from magnific_1b5a3c_74FCKBCJAL.mp4...");
 run([
   "-y",
   "-i",
