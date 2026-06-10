@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 
-const VIDEO_SRC = "/assets/mix/mix-loading-fast.mp4?v=6";
+const VIDEO_SRC = "/assets/mix/mix-loading-fast.mp4?v=7";
 const FALLBACK_DURATION_MS = 5000;
 
 type MixLoadingVideoProps = {
