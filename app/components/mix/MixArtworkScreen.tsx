@@ -236,7 +236,7 @@ export default function MixArtworkScreen() {
             </div>
           </div>
         ) : showLoading ? (
-          <div className="w-full flex justify-center">
+          <div className="w-full flex justify-center mt-[50px]">
             {isVideoDone && isRendering ? (
               <p className="text-[13px] text-[var(--text-muted)] pt-4">마무리 중...</p>
             ) : (
