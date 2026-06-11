@@ -98,7 +98,7 @@ export default function MixEditScreen() {
         </div>
 
         <div className="relative pb-[100px]">
-          <div className="absolute left-1/2 -translate-x-1/2 -translate-y-[20px] z-0 pointer-events-none top-full">
+          <div className="absolute left-1/2 -translate-x-1/2 -translate-y-[70px] z-0 pointer-events-none top-full">
             <MixEditHeroVideo />
           </div>
 
