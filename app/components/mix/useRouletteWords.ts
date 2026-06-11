@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { wordSets } from "../maeum/types";
 import { splitFourWord } from "../../../lib/roulette/splitWord";
 import { shuffleArray } from "../../../lib/shuffleArray";
-import { isSupabaseConfigured, supabase, type RouletteWordRow } from "../../../lib/supabase/client";
 
 const FALLBACK_WORDS = wordSets.map((set) => set.words.join(""));
 
@@ -26,6 +25,7 @@ function pickRandomWord(words: string[], exclude?: string) {
 export function useRouletteWords() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [source, setSource] = useState<"supabase" | "static" | "fallback" | null>(null);
   const [words, setWords] = useState<string[]>([]);
   const [currentWord, setCurrentWord] = useState<string>(FALLBACK_WORDS[0]);
   const wordsRef = useRef<string[]>([]);
@@ -37,42 +37,37 @@ export function useRouletteWords() {
       setLoading(true);
       setError(null);
 
-      if (!isSupabaseConfigured() || !supabase) {
-        const fallback = shuffleArray(FALLBACK_WORDS);
+      try {
+        const response = await fetch("/api/roulette-words", { cache: "no-store" });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const payload = (await response.json()) as {
+          source?: "supabase" | "static";
+          words?: string[];
+        };
+
         if (cancelled) return;
-        wordsRef.current = fallback;
-        setWords(fallback);
-        setCurrentWord(fallback[0] ?? FALLBACK_WORDS[0]);
-        setLoading(false);
-        return;
-      }
 
-      const { data, error: fetchError } = await supabase
-        .from("roulette_words")
-        .select("id, word, is_active, created_at")
-        .eq("is_active", true)
-        .order("id", { ascending: true });
+        const fetched = shuffleArray((payload.words ?? []).map((w) => w.trim()).filter(Boolean));
+        const nextWords = fetched.length > 0 ? fetched : shuffleArray(FALLBACK_WORDS);
+        const nextSource =
+          fetched.length > 0 ? (payload.source === "supabase" ? "supabase" : "static") : "fallback";
 
-      if (cancelled) return;
-
-      if (fetchError) {
+        wordsRef.current = nextWords;
+        setWords(nextWords);
+        setSource(nextSource);
+        setCurrentWord(nextWords[0] ?? FALLBACK_WORDS[0]);
+      } catch (fetchError) {
+        if (cancelled) return;
         const fallback = shuffleArray(FALLBACK_WORDS);
         wordsRef.current = fallback;
         setWords(fallback);
+        setSource("fallback");
         setCurrentWord(fallback[0] ?? FALLBACK_WORDS[0]);
-        setError(fetchError.message);
-        setLoading(false);
-        return;
+        setError(fetchError instanceof Error ? fetchError.message : "load failed");
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-
-      const rows = (data ?? []) as RouletteWordRow[];
-      const fetched = shuffleArray(rows.map((row) => row.word.trim()).filter(Boolean));
-      const nextWords = fetched.length > 0 ? fetched : shuffleArray(FALLBACK_WORDS);
-
-      wordsRef.current = nextWords;
-      setWords(nextWords);
-      setCurrentWord(nextWords[0] ?? FALLBACK_WORDS[0]);
-      setLoading(false);
     }
 
     void loadWords();
@@ -94,6 +89,7 @@ export function useRouletteWords() {
   return {
     loading,
     error,
+    source,
     words,
     currentWord,
     currentLetters: splitFourWord(currentWord),

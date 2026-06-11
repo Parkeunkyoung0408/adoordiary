@@ -5,7 +5,8 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
 const source = path.join(root, "4word.ini");
-const out = path.join(root, "supabase", "roulette_words.seed.sql");
+const sqlOut = path.join(root, "supabase", "roulette_words.seed.sql");
+const jsonOut = path.join(root, "data", "roulette-words.json");
 
 const lines = fs.readFileSync(source, "utf8").split(/\r?\n/);
 const words = [];
@@ -29,6 +30,9 @@ ${values}
 ON CONFLICT (word) DO NOTHING;
 `;
 
-fs.mkdirSync(path.dirname(out), { recursive: true });
-fs.writeFileSync(out, sql, "utf8");
-console.log(`Wrote ${uniqueWords.length} words to ${out}`);
+fs.mkdirSync(path.dirname(sqlOut), { recursive: true });
+fs.mkdirSync(path.dirname(jsonOut), { recursive: true });
+fs.writeFileSync(sqlOut, sql, "utf8");
+fs.writeFileSync(jsonOut, `${JSON.stringify(uniqueWords, null, 2)}\n`, "utf8");
+console.log(`Wrote ${uniqueWords.length} words to ${sqlOut}`);
+console.log(`Wrote ${uniqueWords.length} words to ${jsonOut}`);
