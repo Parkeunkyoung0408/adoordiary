@@ -1,22 +1,29 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Edit3, RotateCw, Sparkles } from "lucide-react";
 import { wordSets } from "../maeum/types";
 import MixEditHeroVideo from "./MixEditHeroVideo";
 import MixPageIntro from "./MixPageIntro";
+import { useRouletteWords } from "./useRouletteWords";
 import { saveMixText } from "./mixStorage";
 import { isValidFourLetters, sanitizeFourLettersInput } from "./validation";
 
 export default function MixEditScreen() {
   const router = useRouter();
+  const { loading: rouletteLoading, currentLetters, spinRoulette, resetToCurrentWord } = useRouletteWords();
   const [isDirectWrite, setIsDirectWrite] = useState(false);
   const [fourWords, setFourWords] = useState<string[]>(wordSets[0].words);
   const [directLetters, setDirectLetters] = useState("");
-  const [currentWordSetIndex, setCurrentWordSetIndex] = useState(0);
   const [isSpinning, setIsSpinning] = useState(false);
   const [showInvalidPopup, setShowInvalidPopup] = useState(false);
+
+  useEffect(() => {
+    if (!rouletteLoading) {
+      setFourWords(currentLetters);
+    }
+  }, [rouletteLoading, currentLetters]);
 
   const cleanText = useMemo(() => {
     if (isDirectWrite) return sanitizeFourLettersInput(directLetters);
@@ -35,13 +42,11 @@ export default function MixEditScreen() {
     setShowInvalidPopup(false);
   };
 
-  const spinRoulette = () => {
-    if (isSpinning) return;
+  const spinRouletteAction = () => {
+    if (isSpinning || rouletteLoading) return;
     setIsSpinning(true);
     setTimeout(() => {
-      const nextIndex = (currentWordSetIndex + 1) % wordSets.length;
-      setCurrentWordSetIndex(nextIndex);
-      setFourWords(wordSets[nextIndex].words);
+      setFourWords(spinRoulette());
       setIsDirectWrite(false);
       setIsSpinning(false);
     }, 600);
@@ -53,7 +58,7 @@ export default function MixEditScreen() {
     if (next) {
       setDirectLetters("");
     } else {
-      setFourWords(wordSets[currentWordSetIndex].words);
+      setFourWords(resetToCurrentWord());
     }
   };
 
@@ -170,8 +175,8 @@ export default function MixEditScreen() {
               {!isDirectWrite && (
                 <button
                   type="button"
-                  onClick={spinRoulette}
-                  disabled={isSpinning}
+                  onClick={spinRouletteAction}
+                  disabled={isSpinning || rouletteLoading}
                   className="flex-1 h-12 bg-white border border-[var(--border-color)] hover:border-[#175138]/50 text-[#175138] rounded-[24px] font-bold text-[13px] hover:bg-[var(--bg-card-inner)]/30 transition-all duration-300 flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 shadow-[0_2px_6px_rgba(0,0,0,0.02)]"
                   style={{ color: "#175138" }}
                 >
