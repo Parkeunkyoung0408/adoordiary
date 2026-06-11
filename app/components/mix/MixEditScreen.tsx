@@ -97,9 +97,13 @@ export default function MixEditScreen() {
           <MixPageIntro step="STEP 1 - 네 글자 입력하기" />
         </div>
 
-        <div>
+        <div className="relative pb-[100px]">
+          <div className="absolute left-1/2 -translate-x-1/2 -translate-y-[20px] z-0 pointer-events-none top-full">
+            <MixEditHeroVideo />
+          </div>
+
           <section
-            className="rounded-[32px] px-5 py-6 border border-white shadow-[0_20px_50px_rgba(22,66,41,0.08)] backdrop-blur-xl relative overflow-hidden transition-all duration-300"
+            className="rounded-[32px] px-5 py-6 border border-white shadow-[0_20px_50px_rgba(22,66,41,0.08)] backdrop-blur-xl relative z-10 overflow-hidden transition-all duration-300"
             style={{
               background: "linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(250, 248, 245, 0.96) 100%)",
               boxShadow: "0 20px 50px rgba(22, 66, 41, 0.08), inset 0 1px 2px rgba(255, 255, 255, 0.9)",
@@ -199,8 +203,6 @@ export default function MixEditScreen() {
             </button>
           </div>
           </section>
-
-          <MixEditHeroVideo />
         </div>
       </div>
 
