@@ -185,7 +185,7 @@ export default function MixArtworkScreen() {
           showCard && previewUrl
             ? "flex flex-col min-h-[calc(100dvh-88px)] overflow-hidden px-4 py-4"
             : showLoading
-              ? "flex items-center justify-center min-h-[calc(100dvh-88px)] px-4 py-4"
+              ? "flex flex-col items-center justify-start min-h-[calc(100dvh-88px)] px-4 pt-6 pb-4"
               : "px-4 py-4 pb-8"
         }
       >
@@ -236,9 +236,9 @@ export default function MixArtworkScreen() {
             </div>
           </div>
         ) : showLoading ? (
-          <div className="flex flex-1 items-center justify-center min-h-[calc(100dvh-120px)]">
+          <div className="w-full flex justify-center">
             {isVideoDone && isRendering ? (
-              <p className="text-[13px] text-[var(--text-muted)]">마무리 중...</p>
+              <p className="text-[13px] text-[var(--text-muted)] pt-4">마무리 중...</p>
             ) : (
               <MixLoadingVideo key={mixSession} onEnded={handleVideoEnded} />
             )}
