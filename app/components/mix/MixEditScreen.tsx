@@ -9,10 +9,11 @@ import MixPageIntro from "./MixPageIntro";
 import { useRouletteWords } from "./useRouletteWords";
 import { saveMixText } from "./mixStorage";
 import { isValidFourLetters, sanitizeFourLettersInput } from "./validation";
+import { splitFourWord } from "../../../lib/roulette/splitWord";
 
 export default function MixEditScreen() {
   const router = useRouter();
-  const { loading: rouletteLoading, currentLetters, spinRoulette, resetToCurrentWord } = useRouletteWords();
+  const { loading: rouletteLoading, currentWord, spinRoulette, resetToCurrentWord } = useRouletteWords();
   const [isDirectWrite, setIsDirectWrite] = useState(false);
   const [fourWords, setFourWords] = useState<string[]>(wordSets[0].words);
   const [directLetters, setDirectLetters] = useState("");
@@ -21,9 +22,9 @@ export default function MixEditScreen() {
 
   useEffect(() => {
     if (!rouletteLoading) {
-      setFourWords(currentLetters);
+      setFourWords(splitFourWord(currentWord));
     }
-  }, [rouletteLoading, currentLetters]);
+  }, [rouletteLoading, currentWord]);
 
   const cleanText = useMemo(() => {
     if (isDirectWrite) return sanitizeFourLettersInput(directLetters);
@@ -156,8 +157,21 @@ export default function MixEditScreen() {
             )}
           </div>
 
-          <div className="space-y-2.5 w-full">
+          <div className="space-y-2.5 w-full relative z-10">
             <div className="flex gap-2">
+              {!isDirectWrite && (
+                <button
+                  type="button"
+                  onClick={spinRouletteAction}
+                  disabled={isSpinning || rouletteLoading}
+                  className="flex-1 h-12 bg-white border border-[var(--border-color)] hover:border-[#175138]/50 text-[#175138] rounded-[24px] font-bold text-[13px] hover:bg-[var(--bg-card-inner)]/30 transition-all duration-300 flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 shadow-[0_2px_6px_rgba(0,0,0,0.02)]"
+                  style={{ color: "#175138" }}
+                >
+                  <RotateCw className={`w-4 h-4 ${isSpinning ? "animate-spin" : ""}`} />
+                  네 글자 룰렛
+                </button>
+              )}
+
               <button
                 type="button"
                 onClick={toggleDirectWrite}
@@ -171,19 +185,6 @@ export default function MixEditScreen() {
                 <Edit3 className="w-4 h-4" />
                 {isDirectWrite ? "룰렛 단어 사용" : "내가 직접 쓸랫"}
               </button>
-
-              {!isDirectWrite && (
-                <button
-                  type="button"
-                  onClick={spinRouletteAction}
-                  disabled={isSpinning || rouletteLoading}
-                  className="flex-1 h-12 bg-white border border-[var(--border-color)] hover:border-[#175138]/50 text-[#175138] rounded-[24px] font-bold text-[13px] hover:bg-[var(--bg-card-inner)]/30 transition-all duration-300 flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 shadow-[0_2px_6px_rgba(0,0,0,0.02)]"
-                  style={{ color: "#175138" }}
-                >
-                  <RotateCw className={`w-4 h-4 ${isSpinning ? "animate-spin" : ""}`} />
-                  네 글자 룰렛
-                </button>
-              )}
             </div>
 
             <button

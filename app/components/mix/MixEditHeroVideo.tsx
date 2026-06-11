@@ -34,7 +34,7 @@ export default function MixEditHeroVideo() {
       autoPlay
       loop
       preload="auto"
-      className="w-full max-w-[150px] h-auto block mx-auto aspect-square object-contain -mt-[10px]"
+      className="w-full max-w-[150px] h-auto block mx-auto aspect-square object-contain -mt-[10px] pointer-events-none relative z-0"
       aria-label="아두르 아트웍 소개 영상"
     />
   );
