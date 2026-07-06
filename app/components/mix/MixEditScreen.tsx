@@ -1,40 +1,31 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Edit3, RotateCw, Sparkles } from "lucide-react";
-import { wordSets } from "../maeum/types";
 import MixEditHeroVideo from "./MixEditHeroVideo";
 import MixPageIntro from "./MixPageIntro";
 import { useRouletteWords } from "./useRouletteWords";
 import { saveMixText } from "./mixStorage";
 import { isValidFourLetters, sanitizeFourLettersInput } from "./validation";
-import { splitFourWord } from "../../../lib/roulette/splitWord";
 
 export default function MixEditScreen() {
   const router = useRouter();
-  const { loading: rouletteLoading, currentWord, spinRoulette, resetToCurrentWord } = useRouletteWords();
+  const { loading: rouletteLoading, currentLetters, spinRoulette } = useRouletteWords();
   const [isDirectWrite, setIsDirectWrite] = useState(false);
-  const [fourWords, setFourWords] = useState<string[]>(wordSets[0].words);
   const [directLetters, setDirectLetters] = useState("");
   const [isSpinning, setIsSpinning] = useState(false);
   const [showInvalidPopup, setShowInvalidPopup] = useState(false);
 
-  useEffect(() => {
-    if (!rouletteLoading) {
-      setFourWords(splitFourWord(currentWord));
-    }
-  }, [rouletteLoading, currentWord]);
-
   const cleanText = useMemo(() => {
     if (isDirectWrite) return sanitizeFourLettersInput(directLetters);
-    return fourWords.join("");
-  }, [isDirectWrite, directLetters, fourWords]);
+    return currentLetters.join("");
+  }, [isDirectWrite, directLetters, currentLetters]);
 
   const letters = useMemo(() => {
     if (isDirectWrite) return Array.from({ length: 4 }, (_, i) => cleanText[i] || "");
-    return fourWords;
-  }, [isDirectWrite, cleanText, fourWords]);
+    return currentLetters;
+  }, [isDirectWrite, cleanText, currentLetters]);
 
   const isValid = isValidFourLetters(cleanText);
 
@@ -47,7 +38,7 @@ export default function MixEditScreen() {
     if (isSpinning || rouletteLoading) return;
     setIsSpinning(true);
     setTimeout(() => {
-      setFourWords(spinRoulette());
+      spinRoulette();
       setIsDirectWrite(false);
       setIsSpinning(false);
     }, 600);
@@ -58,8 +49,6 @@ export default function MixEditScreen() {
     setIsDirectWrite(next);
     if (next) {
       setDirectLetters("");
-    } else {
-      setFourWords(resetToCurrentWord());
     }
   };
 
@@ -107,7 +96,7 @@ export default function MixEditScreen() {
           >
           <div className="text-center mb-2">
             <h2 className="text-[19px] font-black text-[#175138] tracking-tight">네 글자로 써보는 지금 내 생각!</h2>
-            <p className="text-[12px] font-semibold text-[var(--text-muted)] mt-1 opacity-90">16종의 아트웍에 네 글자를 섞어드려요</p>
+            <p className="text-[12px] font-semibold text-[var(--text-muted)] mt-1 opacity-90">20종의 아트웍에 네 글자를 섞어드려요</p>
           </div>
 
           <div className="flex justify-between gap-3 my-5 max-w-[260px] mx-auto w-full relative">
@@ -190,7 +179,7 @@ export default function MixEditScreen() {
             <button
               type="button"
               onClick={goToArtwork}
-              disabled={!isValid}
+              disabled={!isValid || rouletteLoading}
               className="bg-gradient-to-r from-[#12422C] to-[#1D5E3F] w-full h-12 text-white rounded-[24px] font-black text-[14.5px] tracking-wide flex items-center justify-center gap-2 shadow-[0_6px_20px_rgba(23,81,56,0.2)] active:scale-[0.98] disabled:opacity-30 disabled:pointer-events-none disabled:shadow-none transition-all duration-300 mt-1"
               style={{ color: "#ffffff" }}
             >
@@ -200,7 +189,7 @@ export default function MixEditScreen() {
           </div>
           </section>
 
-          <div className="absolute left-1/2 -translate-x-1/2 -translate-y-[110px] z-0 pointer-events-none top-full">
+          <div className="absolute left-1/2 -translate-x-1/2 -translate-y-[100px] z-0 pointer-events-none top-full">
             <MixEditHeroVideo />
           </div>
         </div>

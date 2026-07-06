@@ -27,7 +27,7 @@ export function useRouletteWords() {
   const [error, setError] = useState<string | null>(null);
   const [source, setSource] = useState<"supabase" | "static" | "fallback" | null>(null);
   const [words, setWords] = useState<string[]>([]);
-  const [currentWord, setCurrentWord] = useState<string>(FALLBACK_WORDS[0]);
+  const [currentWord, setCurrentWord] = useState<string>("");
   const wordsRef = useRef<string[]>([]);
 
   useEffect(() => {
@@ -92,7 +92,7 @@ export function useRouletteWords() {
     source,
     words,
     currentWord,
-    currentLetters: splitFourWord(currentWord),
+    currentLetters: currentWord ? splitFourWord(currentWord) : ["", "", "", ""],
     spinRoulette,
     resetToCurrentWord,
   };

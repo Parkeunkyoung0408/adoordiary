@@ -24,21 +24,52 @@ export interface ArtworkConfig {
   native_width: number;
   native_height: number;
   theme_color: string;
+  /** 인스타 4:5 배경색 (미지정 시 가장자리 색상 자동 추출) */
+  instagram_bg_color?: string;
   layout?: TextLayout;
   text_position?: TextPosition;
   text_slots?: TextSlot[];
   font_scale?: number;
+  /** 원본 이미지 기준 텍스트 Y 추가 오프셋(px, +값 = 아래) */
+  text_offset_y?: number;
+  /** 앵커 y_norm(로고·하트 등) 상단 기준, 네 글자를 gap(px)만큼 위에 배치 */
+  text_gap_above_anchor_px?: number;
+  text_anchor_y_norm?: number;
+  /** 원본 이미지 픽셀 — 텍스트 세로 중심 (y_norm보다 우선) */
+  text_center_y_px?: number;
+  /** 텍스트 외곽선 색상 */
+  text_stroke_color?: string;
+  /** 원본 이미지 기준 외곽선 두께(px) */
+  text_stroke_width_px?: number;
 }
 
 export const CANVAS_WIDTH = 2160;
-export const CANVAS_HEIGHT = 3840;
 export const BASE_FONT_SIZE = 480;
+
+/** 원본 native_width 기준으로 스케일 — 아트웍별 비율(≈2:3) 유지 */
+export function getCanvasSize(config: Pick<ArtworkConfig, "native_width" | "native_height">) {
+  const scale = CANVAS_WIDTH / config.native_width;
+  return {
+    width: CANVAS_WIDTH,
+    height: Math.round(config.native_height * scale),
+  };
+}
+
+export function getArtworkAssetUrl(filename: string) {
+  return `/assets/artworks/${filename}`;
+}
 
 /** Page_05(몹시겁시) 참고 — 상단 중앙 통일 위치 */
 const MIX_TEXT_POSITION: TextPosition = { x_norm: 0.5, y_norm: 0.175, align: "center" };
 
 /** Page_01(다드루와) 참고 — 1번 하단 중앙 */
 const ARTWORK_01_TEXT_POSITION: TextPosition = { x_norm: 0.5, y_norm: 0.86, align: "center" };
+
+/** special_0612 17번 — 텍스트 세로 중심 (1701×2552) */
+const SPECIAL_BOTTOM_TEXT_CENTER_Y_PX = 2104;
+
+/** special_0612 18·19·20번 — 텍스트 세로 중심 (1701×2552) */
+const SPECIAL_18_TEXT_CENTER_Y_PX = 384;
 
 /** Page_25(과분화분) 참고 — 13번 하단 중앙 */
 const ARTWORK_13_TEXT_POSITION: TextPosition = { x_norm: 0.5, y_norm: 0.85, align: "center" };
@@ -50,7 +81,7 @@ export const artworkConfigList: ArtworkConfig[] = [
     reference_page: "Page_01",
     native_width: 3050,
     native_height: 4601,
-    theme_color: "#FACC15",
+    theme_color: "#FFFFFF",
     text_position: ARTWORK_01_TEXT_POSITION,
   },
   {
@@ -66,8 +97,8 @@ export const artworkConfigList: ArtworkConfig[] = [
     artwork_id: 3,
     filename: "artwork_03.jpg",
     reference_page: "Page_05",
-    native_width: 1534,
-    native_height: 2313,
+    native_width: 1840,
+    native_height: 2776,
     theme_color: "#EF4444",
     text_position: MIX_TEXT_POSITION,
   },
@@ -75,8 +106,8 @@ export const artworkConfigList: ArtworkConfig[] = [
     artwork_id: 4,
     filename: "artwork_04.jpg",
     reference_page: "Page_07",
-    native_width: 2249,
-    native_height: 3392,
+    native_width: 1840,
+    native_height: 2776,
     theme_color: "#FFC107",
     text_position: MIX_TEXT_POSITION,
   },
@@ -114,6 +145,7 @@ export const artworkConfigList: ArtworkConfig[] = [
     native_width: 1705,
     native_height: 2572,
     theme_color: "#66B35C",
+    instagram_bg_color: "#99edef",
     text_position: MIX_TEXT_POSITION,
   },
   {
@@ -123,6 +155,7 @@ export const artworkConfigList: ArtworkConfig[] = [
     native_width: 1436,
     native_height: 2166,
     theme_color: "#2DD4BF",
+    instagram_bg_color: "#537736",
     text_position: MIX_TEXT_POSITION,
   },
   {
@@ -132,6 +165,7 @@ export const artworkConfigList: ArtworkConfig[] = [
     native_width: 1903,
     native_height: 2870,
     theme_color: "#FFFFFF",
+    instagram_bg_color: "#e8b135",
     text_position: MIX_TEXT_POSITION,
   },
   {
@@ -141,6 +175,7 @@ export const artworkConfigList: ArtworkConfig[] = [
     native_width: 2052,
     native_height: 3094,
     theme_color: "#EF4444",
+    instagram_bg_color: "#42badc",
     text_position: MIX_TEXT_POSITION,
   },
   {
@@ -159,6 +194,7 @@ export const artworkConfigList: ArtworkConfig[] = [
     native_width: 2135,
     native_height: 3221,
     theme_color: "#FFFFFF",
+    instagram_bg_color: "#135a1f",
     text_position: ARTWORK_13_TEXT_POSITION,
   },
   {
@@ -167,7 +203,8 @@ export const artworkConfigList: ArtworkConfig[] = [
     reference_page: "Page_27",
     native_width: 2140,
     native_height: 3228,
-    theme_color: "#22C55E",
+    theme_color: "#22c55e",
+    instagram_bg_color: "#176d18",
     text_position: MIX_TEXT_POSITION,
   },
   {
@@ -177,6 +214,7 @@ export const artworkConfigList: ArtworkConfig[] = [
     native_width: 1320,
     native_height: 1991,
     theme_color: "#EC4899",
+    instagram_bg_color: "#f3cf93",
     text_position: MIX_TEXT_POSITION,
   },
   {
@@ -185,8 +223,50 @@ export const artworkConfigList: ArtworkConfig[] = [
     reference_page: "Page_31",
     native_width: 1696,
     native_height: 2558,
-    theme_color: "#2EC4C6",
+    theme_color: "#e9481a",
+    instagram_bg_color: "#d7bc7f",
     text_position: MIX_TEXT_POSITION,
+  },
+  {
+    artwork_id: 17,
+    filename: "artwork_17.jpg",
+    reference_page: "Special_0612_01",
+    native_width: 1701,
+    native_height: 2552,
+    theme_color: "#55c7e7",
+    text_position: { x_norm: 0.5, y_norm: 0.5, align: "center" },
+    text_center_y_px: SPECIAL_BOTTOM_TEXT_CENTER_Y_PX,
+  },
+  {
+    artwork_id: 18,
+    filename: "artwork_18.jpg",
+    reference_page: "Special_0612_02",
+    native_width: 1701,
+    native_height: 2552,
+    theme_color: "#db1f26",
+    text_position: { x_norm: 0.5, y_norm: 0.5, align: "center" },
+    text_center_y_px: SPECIAL_18_TEXT_CENTER_Y_PX,
+  },
+  {
+    artwork_id: 19,
+    filename: "artwork_19.jpg",
+    reference_page: "Special_0612_03",
+    native_width: 1701,
+    native_height: 2552,
+    theme_color: "#FFFFFF",
+    instagram_bg_color: "#f7c9d6",
+    text_position: { x_norm: 0.5, y_norm: 0.5, align: "center" },
+    text_center_y_px: SPECIAL_18_TEXT_CENTER_Y_PX,
+  },
+  {
+    artwork_id: 20,
+    filename: "artwork_20.jpg",
+    reference_page: "Special_0612_04",
+    native_width: 1701,
+    native_height: 2552,
+    theme_color: "#FFFFFF",
+    text_position: { x_norm: 0.5, y_norm: 0.5, align: "center" },
+    text_center_y_px: SPECIAL_18_TEXT_CENTER_Y_PX,
   },
 ];
 
