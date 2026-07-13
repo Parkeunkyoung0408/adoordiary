@@ -19,6 +19,8 @@ const CARD_ASPECT = FLIP_BACK_HEIGHT / FLIP_BACK_WIDTH;
 const FLIP_CARD_RADIUS_PX = 14;
 const FLIP_ROTATE = { duration: 0.4, ease: "power2.inOut" as const };
 const TAP_MOVE_THRESHOLD_PX = 10;
+/** 탑바 베이지 배경 (~70% opacity) */
+const TOPBAR_BEIGE = "rgba(232, 223, 208, 0.7)";
 
 function getMobileCardWidth(viewportWidth: number) {
   return Math.min(320, Math.round(viewportWidth * 0.82));
@@ -150,6 +152,7 @@ export default function FlipMobileSkewDeck() {
   const [order] = useState(() => [...flipCardConfigList]);
   const [flippedId, setFlippedId] = useState<number | null>(null);
   const [cardWidth, setCardWidth] = useState(300);
+  const [compactHeader, setCompactHeader] = useState(false);
 
   const cardHeight = Math.round(cardWidth * CARD_ASPECT);
 
@@ -195,6 +198,23 @@ export default function FlipMobileSkewDeck() {
     };
   }, [order.length, cardWidth]);
 
+  /** 카드 1장 높이만큼 스크롤되면 탑바 모드 */
+  useEffect(() => {
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+
+    const gapPx = Math.round(window.innerHeight * 0.12);
+    const threshold = Math.max(120, cardHeight + gapPx * 0.35);
+
+    const onScroll = () => {
+      setCompactHeader(scroller.scrollTop >= threshold);
+    };
+
+    onScroll();
+    scroller.addEventListener("scroll", onScroll, { passive: true });
+    return () => scroller.removeEventListener("scroll", onScroll);
+  }, [cardHeight]);
+
   /** 같은 카드면 닫기, 다른 카드면 기존 닫고 새 카드 뒷면 열기 */
   const handleSelect = useCallback((cardId: number) => {
     setFlippedId((prev) => {
@@ -203,13 +223,32 @@ export default function FlipMobileSkewDeck() {
     });
   }, []);
 
+  const scrollToTop = useCallback(() => {
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+    scroller.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
   return (
     <div
       ref={scrollerRef}
       className="relative h-full min-h-0 overflow-y-auto overscroll-contain touch-pan-y [-webkit-overflow-scrolling:touch] text-white bg-[#222222]"
     >
-      <FlipBrandTitle variant="horizontal" />
-      <FlipPeaceTagline variant="horizontal" />
+      <div
+        className="pointer-events-none fixed inset-x-0 top-0 z-[55] transition-opacity duration-300 ease-out"
+        style={{
+          height: "max(64px, calc(env(safe-area-inset-top) + 56px))",
+          backgroundColor: TOPBAR_BEIGE,
+          opacity: compactHeader ? 1 : 0,
+        }}
+        aria-hidden
+      />
+      <FlipBrandTitle
+        variant="horizontal"
+        compact={compactHeader}
+        onLogoClick={scrollToTop}
+      />
+      <FlipPeaceTagline variant="horizontal" compact={compactHeader} />
 
       <div
         className="flex flex-col items-center px-4"

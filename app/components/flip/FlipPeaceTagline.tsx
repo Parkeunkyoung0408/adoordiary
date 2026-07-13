@@ -11,9 +11,14 @@ const TAGLINE_TEXT = "네 글자로 경험하는 내적 평화";
 type FlipPeaceTaglineProps = {
   /** 모바일 가로 로고 아래에 맞춤 */
   variant?: "default" | "horizontal";
+  /** 스크롤 후 숨김 */
+  compact?: boolean;
 };
 
-export default function FlipPeaceTagline({ variant = "default" }: FlipPeaceTaglineProps) {
+export default function FlipPeaceTagline({
+  variant = "default",
+  compact = false,
+}: FlipPeaceTaglineProps) {
   const top =
     variant === "horizontal"
       ? "max(92px, calc(env(safe-area-inset-top) + 84px))"
@@ -21,12 +26,15 @@ export default function FlipPeaceTagline({ variant = "default" }: FlipPeaceTagli
 
   return (
     <div
-      className="pointer-events-none fixed inset-x-0 z-[60] text-center"
+      className={`pointer-events-none fixed inset-x-0 z-[60] text-center transition-opacity duration-300 ease-out ${
+        compact ? "opacity-0" : "opacity-100"
+      }`}
       style={{
         top,
         paddingLeft: variant === "horizontal" ? 24 : FLIP_BRAND_LEFT,
         paddingRight: variant === "horizontal" ? 24 : FLIP_BRAND_LEFT,
       }}
+      aria-hidden={compact}
     >
       <p
         className={
