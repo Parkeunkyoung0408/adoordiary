@@ -65,6 +65,9 @@ const MIX_TEXT_POSITION: TextPosition = { x_norm: 0.5, y_norm: 0.175, align: "ce
 /** Page_01(다드루와) 참고 — 1번 하단 중앙 */
 const ARTWORK_01_TEXT_POSITION: TextPosition = { x_norm: 0.5, y_norm: 0.86, align: "center" };
 
+/** Page_03(미러미뤄) 참고 — 2번 하단 중앙 */
+const ARTWORK_02_TEXT_POSITION: TextPosition = { x_norm: 0.5, y_norm: 0.85, align: "center" };
+
 /** special_0612 17번 — 텍스트 세로 중심 (1701×2552) */
 const SPECIAL_BOTTOM_TEXT_CENTER_Y_PX = 2104;
 
@@ -91,7 +94,7 @@ export const artworkConfigList: ArtworkConfig[] = [
     native_width: 1229,
     native_height: 1796,
     theme_color: "#FFFFFF",
-    text_position: MIX_TEXT_POSITION,
+    text_position: ARTWORK_02_TEXT_POSITION,
   },
   {
     artwork_id: 3,
