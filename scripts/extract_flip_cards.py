@@ -1,4 +1,4 @@
-"""PDF에서 flip 카드 16종 앞·뒷면 이미지 추출."""
+"""PDF에서 flip 카드 앞·뒷면 이미지 추출."""
 from __future__ import annotations
 
 import io

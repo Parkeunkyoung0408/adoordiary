@@ -17,7 +17,7 @@ const WHEEL_DIR = path.join(CARDS_DIR, "wheel");
 
 const WHEEL_WIDTH = 480;
 const WEBP_QUALITY = 78;
-const CARD_COUNT = 16;
+const CARD_COUNT = 17;
 
 async function fileSizeMb(filePath) {
   const stat = await fs.stat(filePath);

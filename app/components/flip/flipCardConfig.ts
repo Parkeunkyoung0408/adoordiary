@@ -35,7 +35,7 @@ export function getTextCardDisplaySize(devicePixelRatio = 1, containerCssWidth?:
 /** 260609_컬러폰트_긍정뷔페_폰트수정 PDF 앞면 / postcard PDF 뒷면 (11x 추출) */
 const CARD_FRONT_WIDTH = 3119;
 const CARD_FRONT_HEIGHT = 4615;
-const CARD_DIMENSIONS: Array<[number, number]> = Array.from({ length: 16 }, () => [
+const CARD_DIMENSIONS: Array<[number, number]> = Array.from({ length: 17 }, () => [
   CARD_FRONT_WIDTH,
   CARD_FRONT_HEIGHT,
 ]);
