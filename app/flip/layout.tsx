@@ -5,7 +5,7 @@ const robotoMono = Roboto_Mono({ subsets: ["latin"], weight: ["400", "700"] });
 
 export const metadata: Metadata = {
   title: "카드 뒤집기 | adoor gyumdang",
-  description: "16종 아트웍 카드를 뒤집어 작가의 그림을 만나보세요",
+  description: "아트웍 카드를 뒤집어 작가의 그림을 만나보세요",
 };
 
 export const viewport: Viewport = {
