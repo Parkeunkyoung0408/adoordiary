@@ -2,6 +2,9 @@ export interface FlipCardConfig {
   id: number;
   frontPage: number;
   backPage: number;
+  /** 휠용 저해상도 WebP (초기 로딩) */
+  frontWheelSrc: string;
+  /** 확대용 고해상도 JPG */
   frontSrc: string;
   backSrc: string;
   frontWidth: number;
@@ -45,6 +48,7 @@ export const flipCardConfigList: FlipCardConfig[] = CARD_DIMENSIONS.map(([frontW
     id,
     frontPage: id * 2 - 1,
     backPage: id * 2,
+    frontWheelSrc: `/assets/flip/cards/wheel/card_${pad}_front.webp`,
     frontSrc: `/assets/flip/cards/card_${pad}_front.jpg`,
     backSrc: `/assets/flip/cards/card_${pad}_back.jpg`,
     frontWidth,

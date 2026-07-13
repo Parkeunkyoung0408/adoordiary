@@ -20,10 +20,10 @@ gsap.registerPlugin(Flip);
 /** 한 바퀴(360°) 회전에 필요한 스크롤 높이 (뷰포트 배수) */
 const WHEEL_SCROLL_CYCLE_VH = 1;
 
-const FLIP_MOVE = { duration: 0.6, ease: "sine.out" as const };
-const FLIP_ROTATE = { duration: 0.5, ease: "power2.inOut" as const };
+const FLIP_MOVE = { duration: 0.18, ease: "sine.out" as const };
+const FLIP_ROTATE = { duration: 0.18, ease: "power2.inOut" as const };
 /** 확대 후 앞면 유지 시간(초) — 이후 뒷면으로 뒤집힘 */
-const FRONT_FACE_HOLD = 1;
+const FRONT_FACE_HOLD = 0.08;
 const WHEEL_SIZE_SCALE = 2.2;
 const CARD_SIZE_SCALE = 1.1;
 const WHEEL_CARD_MAX_WIDTH = Math.round(210 * CARD_SIZE_SCALE);
@@ -122,14 +122,18 @@ function CardImageFace({
   variant,
   displayWidth,
   displayHeight,
+  fetchPriority,
+  loading,
 }: {
-  src: string;
+  src: string | null;
   alt: string;
   width: number;
   height: number;
   variant: "front" | "back";
   displayWidth?: number;
   displayHeight?: number;
+  fetchPriority?: "high" | "low" | "auto";
+  loading?: "eager" | "lazy";
 }) {
   const isBack = variant === "back";
 
@@ -143,24 +147,37 @@ function CardImageFace({
         transform: isBack ? "rotateY(180deg)" : undefined,
       }}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={src}
-        alt={alt}
-        width={width}
-        height={height}
-        decoding="async"
-        draggable={false}
-        style={{
-          borderRadius: FLIP_CARD_RADIUS_PX,
-          ...(isBack && displayWidth && displayHeight
-            ? { width: displayWidth, height: displayHeight, maxWidth: "100%", maxHeight: "100%" }
-            : {}),
-        }}
-        className={`block w-full h-full pointer-events-none ${isBack ? "object-contain" : "object-cover"}`}
-      />
+      {src ? (
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img
+          src={src}
+          alt={alt}
+          width={width}
+          height={height}
+          decoding="async"
+          loading={loading}
+          fetchPriority={fetchPriority}
+          draggable={false}
+          style={{
+            borderRadius: FLIP_CARD_RADIUS_PX,
+            ...(isBack && displayWidth && displayHeight
+              ? { width: displayWidth, height: displayHeight, maxWidth: "100%", maxHeight: "100%" }
+              : {}),
+          }}
+          className={`block w-full h-full pointer-events-none ${isBack ? "object-contain" : "object-cover"}`}
+        />
+      ) : null}
     </div>
   );
+}
+
+function preloadImage(src: string) {
+  return new Promise<void>((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve();
+    img.onerror = () => resolve();
+    img.src = src;
+  });
 }
 
 export default function FlipDeckPage() {
@@ -169,6 +186,9 @@ export default function FlipDeckPage() {
   const [devicePixelRatio, setDevicePixelRatio] = useState(2);
   const [activeCardId, setActiveCardId] = useState<number | null>(null);
   const [isDismissBackdropActive, setIsDismissBackdropActive] = useState(false);
+  /** 확대된 적 있는 카드 — 고해상도 앞/뒷면 유지 */
+  const [hiResCardIds, setHiResCardIds] = useState<Set<number>>(() => new Set());
+  const hiResCardIdsRef = useRef<Set<number>>(new Set());
 
   const explosionLayerRef = useRef<HTMLDivElement>(null);
   const expandedLayerRef = useRef<HTMLDivElement>(null);
@@ -429,7 +449,8 @@ export default function FlipDeckPage() {
       const visual = visualRefs.current.get(cardId);
       const inner = innerRefs.current.get(cardId);
       const expandedLayer = expandedLayerRef.current;
-      if (!visual || !inner || !expandedLayer) return;
+      const card = order.find((item) => item.id === cardId);
+      if (!visual || !inner || !expandedLayer || !card) return;
 
       busyRef.current = true;
       setWheelInteractive(false);
@@ -438,6 +459,20 @@ export default function FlipDeckPage() {
       activeSlotRef.current = slot;
       setActiveCardId(cardId);
       expandedFaceBackRef.current = false;
+
+      const enableHiRes = () => {
+        if (hiResCardIdsRef.current.has(cardId)) return;
+        const next = new Set(hiResCardIdsRef.current);
+        next.add(cardId);
+        hiResCardIdsRef.current = next;
+        setHiResCardIds(next);
+      };
+
+      // 확대 중에는 WebP를 확대 표시 → 고해상도 로드 완료 후 교체
+      const hiResReady = Promise.all([
+        preloadImage(card.frontSrc),
+        preloadImage(card.backSrc),
+      ]).then(enableHiRes);
 
       playFlipCardExplosionAtElement(visual);
 
@@ -461,19 +496,25 @@ export default function FlipDeckPage() {
           busyRef.current = false;
           syncWheelRotationRef.current?.();
 
-          gsap.to(inner, {
-            rotateY: 180,
-            ...FLIP_ROTATE,
-            delay: FRONT_FACE_HOLD,
-            overwrite: true,
-            onComplete: () => {
-              expandedFaceBackRef.current = true;
-            },
+          const hold = new Promise<void>((resolve) => {
+            window.setTimeout(resolve, FRONT_FACE_HOLD * 1000);
+          });
+
+          void Promise.all([hold, hiResReady]).then(() => {
+            if (activeIdRef.current !== cardId) return;
+            gsap.to(inner, {
+              rotateY: 180,
+              ...FLIP_ROTATE,
+              overwrite: true,
+              onComplete: () => {
+                expandedFaceBackRef.current = true;
+              },
+            });
           });
         },
       });
     },
-    [expandedSize.height, expandedSize.width, killCardTweens, setWheelInteractive]
+    [expandedSize.height, expandedSize.width, killCardTweens, order, setWheelInteractive]
   );
 
   const handleDismissBackdrop = useCallback(() => {
@@ -677,18 +718,25 @@ export default function FlipDeckPage() {
                     }}
                   >
                     <CardImageFace
-                      src={card.frontSrc}
+                      src={
+                        activeCardId === card.id && hiResCardIds.has(card.id)
+                          ? card.frontSrc
+                          : card.frontWheelSrc
+                      }
                       alt={`카드 ${card.id} 앞면`}
                       width={card.frontWidth}
                       height={card.frontHeight}
                       variant="front"
+                      loading="eager"
+                      fetchPriority={card.id <= 4 ? "high" : "auto"}
                     />
                     <CardImageFace
-                      src={card.backSrc}
+                      src={hiResCardIds.has(card.id) ? card.backSrc : null}
                       alt={`카드 ${card.id} 뒷면`}
                       width={card.backWidth}
                       height={card.backHeight}
                       variant="back"
+                      loading="lazy"
                       displayWidth={
                         activeCardId === card.id
                           ? expandedBackFaceDisplaySize.width
