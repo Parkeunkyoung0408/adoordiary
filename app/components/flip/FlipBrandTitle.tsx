@@ -26,7 +26,7 @@ export default function FlipBrandTitle({
         }`}
         style={{
           top: compact
-            ? "max(10px, calc(env(safe-area-inset-top) + 8px))"
+            ? "max(0px, calc(env(safe-area-inset-top) + 8px - 30px))"
             : "max(20px, calc(env(safe-area-inset-top) + 12px))",
         }}
       >

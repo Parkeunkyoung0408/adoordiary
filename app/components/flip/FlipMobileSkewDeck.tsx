@@ -19,8 +19,8 @@ const CARD_ASPECT = FLIP_BACK_HEIGHT / FLIP_BACK_WIDTH;
 const FLIP_CARD_RADIUS_PX = 14;
 const FLIP_ROTATE = { duration: 0.4, ease: "power2.inOut" as const };
 const TAP_MOVE_THRESHOLD_PX = 10;
-/** 탑바 베이지 배경 (~70% opacity) */
-const TOPBAR_BEIGE = "rgba(232, 223, 208, 0.7)";
+/** 탑바 검정 배경 (~70% opacity) */
+const TOPBAR_BG = "rgba(0, 0, 0, 0.7)";
 
 function getMobileCardWidth(viewportWidth: number) {
   return Math.min(320, Math.round(viewportWidth * 0.82));
@@ -238,7 +238,7 @@ export default function FlipMobileSkewDeck() {
         className="pointer-events-none fixed inset-x-0 top-0 z-[55] transition-opacity duration-300 ease-out"
         style={{
           height: "max(64px, calc(env(safe-area-inset-top) + 56px))",
-          backgroundColor: TOPBAR_BEIGE,
+          backgroundColor: TOPBAR_BG,
           opacity: compactHeader ? 1 : 0,
         }}
         aria-hidden
