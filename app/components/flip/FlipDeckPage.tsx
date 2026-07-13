@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import gsap from "gsap";
 import { Flip } from "gsap/Flip";
 import { ChevronDown } from "lucide-react";
@@ -116,6 +116,7 @@ function shuffleCards(list: FlipCardConfig[]): FlipCardConfig[] {
 
 function CardImageFace({
   src,
+  baseSrc,
   alt,
   width,
   height,
@@ -126,6 +127,8 @@ function CardImageFace({
   loading,
 }: {
   src: string | null;
+  /** 저해상도 베이스 — 고해상도 교체 시 깜빡임 방지 */
+  baseSrc?: string | null;
   alt: string;
   width: number;
   height: number;
@@ -136,6 +139,18 @@ function CardImageFace({
   loading?: "eager" | "lazy";
 }) {
   const isBack = variant === "back";
+  const [hiResReady, setHiResReady] = useState(false);
+
+  useEffect(() => {
+    setHiResReady(false);
+  }, [src]);
+
+  const imageStyle: CSSProperties = {
+    borderRadius: FLIP_CARD_RADIUS_PX,
+    ...(isBack && displayWidth && displayHeight
+      ? { width: displayWidth, height: displayHeight, maxWidth: "100%", maxHeight: "100%" }
+      : {}),
+  };
 
   return (
     <div
@@ -147,10 +162,10 @@ function CardImageFace({
         transform: isBack ? "rotateY(180deg)" : undefined,
       }}
     >
-      {src ? (
+      {baseSrc ? (
         /* eslint-disable-next-line @next/next/no-img-element */
         <img
-          src={src}
+          src={baseSrc}
           alt={alt}
           width={width}
           height={height}
@@ -158,10 +173,30 @@ function CardImageFace({
           loading={loading}
           fetchPriority={fetchPriority}
           draggable={false}
+          style={imageStyle}
+          className={`block w-full h-full pointer-events-none ${isBack ? "object-contain" : "object-cover"}`}
+        />
+      ) : null}
+      {src ? (
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img
+          src={src}
+          alt=""
+          width={width}
+          height={height}
+          decoding="async"
+          loading={loading}
+          draggable={false}
+          onLoad={() => setHiResReady(true)}
           style={{
-            borderRadius: FLIP_CARD_RADIUS_PX,
-            ...(isBack && displayWidth && displayHeight
-              ? { width: displayWidth, height: displayHeight, maxWidth: "100%", maxHeight: "100%" }
+            ...imageStyle,
+            ...(baseSrc
+              ? {
+                  position: "absolute",
+                  inset: 0,
+                  opacity: hiResReady ? 1 : 0,
+                  transition: "opacity 0.12s ease-out",
+                }
               : {}),
           }}
           className={`block w-full h-full pointer-events-none ${isBack ? "object-contain" : "object-cover"}`}
@@ -468,9 +503,8 @@ export default function FlipDeckPage() {
         setHiResCardIds(next);
       };
 
-      // 고해상도는 백그라운드 로드 — 플립은 이미지 완료를 기다리지 않음
-      enableHiRes();
-      void Promise.all([preloadImage(card.frontSrc), preloadImage(card.backSrc)]);
+      // 고해상도는 로드 완료 후에만 표시 — 클릭 직후 src 교체로 이미지가 사라지지 않게 함
+      void Promise.all([preloadImage(card.frontSrc), preloadImage(card.backSrc)]).then(enableHiRes);
 
       playFlipCardExplosionAtElement(visual);
 
@@ -710,10 +744,11 @@ export default function FlipDeckPage() {
                     }}
                   >
                     <CardImageFace
+                      baseSrc={card.frontWheelSrc}
                       src={
                         activeCardId === card.id && hiResCardIds.has(card.id)
                           ? card.frontSrc
-                          : card.frontWheelSrc
+                          : null
                       }
                       alt={`카드 ${card.id} 앞면`}
                       width={card.frontWidth}
