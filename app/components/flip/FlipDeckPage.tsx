@@ -20,10 +20,10 @@ gsap.registerPlugin(Flip);
 /** 한 바퀴(360°) 회전에 필요한 스크롤 높이 (뷰포트 배수) */
 const WHEEL_SCROLL_CYCLE_VH = 1;
 
-const FLIP_MOVE = { duration: 0.18, ease: "sine.out" as const };
-const FLIP_ROTATE = { duration: 0.18, ease: "power2.inOut" as const };
+const FLIP_MOVE = { duration: 0.12, ease: "power2.out" as const };
+const FLIP_ROTATE = { duration: 0.14, ease: "power2.inOut" as const };
 /** 확대 후 앞면 유지 시간(초) — 이후 뒷면으로 뒤집힘 */
-const FRONT_FACE_HOLD = 0.08;
+const FRONT_FACE_HOLD = 0;
 const WHEEL_SIZE_SCALE = 2.2;
 const CARD_SIZE_SCALE = 1.1;
 const WHEEL_CARD_MAX_WIDTH = Math.round(210 * CARD_SIZE_SCALE);
@@ -468,11 +468,9 @@ export default function FlipDeckPage() {
         setHiResCardIds(next);
       };
 
-      // 확대 중에는 WebP를 확대 표시 → 고해상도 로드 완료 후 교체
-      const hiResReady = Promise.all([
-        preloadImage(card.frontSrc),
-        preloadImage(card.backSrc),
-      ]).then(enableHiRes);
+      // 고해상도는 백그라운드 로드 — 플립은 이미지 완료를 기다리지 않음
+      enableHiRes();
+      void Promise.all([preloadImage(card.frontSrc), preloadImage(card.backSrc)]);
 
       playFlipCardExplosionAtElement(visual);
 
@@ -496,20 +494,14 @@ export default function FlipDeckPage() {
           busyRef.current = false;
           syncWheelRotationRef.current?.();
 
-          const hold = new Promise<void>((resolve) => {
-            window.setTimeout(resolve, FRONT_FACE_HOLD * 1000);
-          });
-
-          void Promise.all([hold, hiResReady]).then(() => {
-            if (activeIdRef.current !== cardId) return;
-            gsap.to(inner, {
-              rotateY: 180,
-              ...FLIP_ROTATE,
-              overwrite: true,
-              onComplete: () => {
-                expandedFaceBackRef.current = true;
-              },
-            });
+          gsap.to(inner, {
+            rotateY: 180,
+            ...FLIP_ROTATE,
+            delay: FRONT_FACE_HOLD,
+            overwrite: true,
+            onComplete: () => {
+              expandedFaceBackRef.current = true;
+            },
           });
         },
       });
