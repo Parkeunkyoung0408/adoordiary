@@ -208,13 +208,13 @@ export default function FlipMobileSkewDeck() {
       ref={scrollerRef}
       className="relative h-full min-h-0 overflow-y-auto overscroll-contain touch-pan-y [-webkit-overflow-scrolling:touch] text-white bg-[#222222]"
     >
-      <FlipBrandTitle />
-      <FlipPeaceTagline />
+      <FlipBrandTitle variant="horizontal" />
+      <FlipPeaceTagline variant="horizontal" />
 
       <div
         className="flex flex-col items-center px-4"
         style={{
-          paddingTop: "max(148px, calc(env(safe-area-inset-top) + 132px))",
+          paddingTop: "max(128px, calc(env(safe-area-inset-top) + 116px))",
           paddingBottom: "max(48px, calc(env(safe-area-inset-bottom) + 32px))",
           gap: "12vh",
         }}
