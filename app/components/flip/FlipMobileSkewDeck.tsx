@@ -220,7 +220,9 @@ export default function FlipMobileSkewDeck() {
         }}
       >
         <p className="m-0 max-w-[280px] text-center text-[12px] leading-relaxed text-white/55">
-          스크롤하며 카드를 넘기고, 탭하면 뒷면을 볼 수 있어요
+          스크롤하며 카드를 넘기고,
+          <br />
+          탭하면 뒷면을 볼 수 있어요
         </p>
 
         {order.map((card) => (
