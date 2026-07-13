@@ -20,10 +20,10 @@ gsap.registerPlugin(Flip);
 /** 한 바퀴(360°) 회전에 필요한 스크롤 높이 (뷰포트 배수) */
 const WHEEL_SCROLL_CYCLE_VH = 1;
 
-const FLIP_MOVE = { duration: 0.12, ease: "power2.out" as const };
-const FLIP_ROTATE = { duration: 0.14, ease: "power2.inOut" as const };
+const FLIP_MOVE = { duration: 0.28, ease: "power2.out" as const };
+const FLIP_ROTATE = { duration: 0.32, ease: "power2.inOut" as const };
 /** 확대 후 앞면 유지 시간(초) — 이후 뒷면으로 뒤집힘 */
-const FRONT_FACE_HOLD = 0;
+const FRONT_FACE_HOLD = 0.35;
 const WHEEL_SIZE_SCALE = 2.2;
 const CARD_SIZE_SCALE = 1.1;
 const WHEEL_CARD_MAX_WIDTH = Math.round(210 * CARD_SIZE_SCALE);
