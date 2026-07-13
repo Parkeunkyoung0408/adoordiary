@@ -253,7 +253,7 @@ export default function FlipMobileSkewDeck() {
       <div
         className="flex flex-col items-center px-4"
         style={{
-          paddingTop: "max(128px, calc(env(safe-area-inset-top) + 116px))",
+          paddingTop: "max(148px, calc(env(safe-area-inset-top) + 136px))",
           paddingBottom: "max(48px, calc(env(safe-area-inset-bottom) + 32px))",
           gap: "12vh",
         }}

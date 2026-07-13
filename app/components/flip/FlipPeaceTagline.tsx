@@ -7,6 +7,7 @@ import {
 } from "./flipBrandLayout";
 
 const TAGLINE_TEXT = "네 글자로 경험하는 내적 평화";
+const HINT_TEXT = "카드를 탭하면 처방 문구가 보여요";
 
 type FlipPeaceTaglineProps = {
   /** 모바일 가로 로고 아래에 맞춤 */
@@ -44,6 +45,15 @@ export default function FlipPeaceTagline({
         }
       >
         {TAGLINE_TEXT}
+      </p>
+      <p
+        className={
+          variant === "horizontal"
+            ? "m-0 mt-1.5 text-[12px] leading-relaxed tracking-[-0.01em] text-white/55"
+            : "m-0 mt-2 text-[14px] leading-relaxed tracking-[-0.01em] text-white/55 sm:text-[15px]"
+        }
+      >
+        {HINT_TEXT}
       </p>
     </div>
   );
