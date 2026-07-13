@@ -90,7 +90,7 @@ export const artworkConfigList: ArtworkConfig[] = [
     reference_page: "Page_03",
     native_width: 1229,
     native_height: 1796,
-    theme_color: "#175138",
+    theme_color: "#FFFFFF",
     text_position: MIX_TEXT_POSITION,
   },
   {
