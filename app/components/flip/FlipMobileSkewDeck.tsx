@@ -17,7 +17,7 @@ gsap.registerPlugin(ScrollTrigger);
 /** 원본 카드 비율 (3119×4615) */
 const CARD_ASPECT = FLIP_BACK_HEIGHT / FLIP_BACK_WIDTH;
 const FLIP_CARD_RADIUS_PX = 14;
-const FLIP_ROTATE = { duration: 0.45, ease: "power2.inOut" as const };
+const FLIP_ROTATE = { duration: 0.4, ease: "power2.inOut" as const };
 const TAP_MOVE_THRESHOLD_PX = 10;
 
 function getMobileCardWidth(viewportWidth: number) {
@@ -70,88 +70,106 @@ function MobileFlipCard({
   width,
   height,
   isFlipped,
-  onToggle,
+  onSelect,
 }: {
   card: FlipCardConfig;
   width: number;
   height: number;
   isFlipped: boolean;
-  onToggle: () => void;
+  onSelect: () => void;
 }) {
   const innerRef = useRef<HTMLDivElement>(null);
   const [backReady, setBackReady] = useState(false);
   const gestureRef = useRef({ x: 0, y: 0, moved: false });
+  const wasFlippedRef = useRef(isFlipped);
 
   useEffect(() => {
     const inner = innerRef.current;
     if (!inner) return;
+
+    const nextAngle = isFlipped ? 180 : 0;
+    const prevFlipped = wasFlippedRef.current;
+    wasFlippedRef.current = isFlipped;
+
+    // 다른 카드로 넘어갈 때도 앞면/뒷면 전환 애니메이션 유지
+    gsap.killTweensOf(inner);
     gsap.to(inner, {
-      rotateY: isFlipped ? 180 : 0,
+      rotateY: nextAngle,
       ...FLIP_ROTATE,
+      // 첫 마운트는 즉시, 이후 상태 변경만 트윈
+      duration: prevFlipped === isFlipped ? 0 : FLIP_ROTATE.duration,
       overwrite: true,
     });
   }, [isFlipped]);
 
   useEffect(() => {
-    if (!isFlipped || backReady) return;
+    if (!isFlipped) return;
+    if (backReady) return;
     void preloadImage(card.backSrc).then(() => setBackReady(true));
   }, [backReady, card.backSrc, isFlipped]);
 
   return (
-    <button
-      type="button"
-      className="skew-card relative mx-auto block shrink-0 overflow-visible [-webkit-tap-highlight-color:transparent] focus:outline-none touch-manipulation"
+    <div
+      className="skew-card mx-auto shrink-0"
       style={{
         width,
         height,
-        borderRadius: FLIP_CARD_RADIUS_PX,
-        boxShadow: "0 12px 36px rgba(0,0,0,0.35)",
-        perspective: 1400,
-        transformStyle: "preserve-3d",
-      }}
-      aria-label={isFlipped ? `카드 ${card.id} 앞면 보기` : `카드 ${card.id} 뒷면 보기`}
-      onPointerDown={(e) => {
-        gestureRef.current = { x: e.clientX, y: e.clientY, moved: false };
-      }}
-      onPointerMove={(e) => {
-        const g = gestureRef.current;
-        const dx = e.clientX - g.x;
-        const dy = e.clientY - g.y;
-        if (dx * dx + dy * dy > TAP_MOVE_THRESHOLD_PX * TAP_MOVE_THRESHOLD_PX) {
-          g.moved = true;
-        }
-      }}
-      onPointerUp={(e) => {
-        if (e.button !== 0) return;
-        if (gestureRef.current.moved) return;
-        onToggle();
+        transformOrigin: "right center",
       }}
     >
-      <div
-        ref={innerRef}
-        className="relative h-full w-full"
+      <button
+        type="button"
+        className="relative block h-full w-full overflow-visible [-webkit-tap-highlight-color:transparent] focus:outline-none touch-manipulation"
         style={{
           borderRadius: FLIP_CARD_RADIUS_PX,
+          boxShadow: "0 12px 36px rgba(0,0,0,0.35)",
+          perspective: 1400,
           transformStyle: "preserve-3d",
-          transformOrigin: "center center",
+        }}
+        aria-label={isFlipped ? `카드 ${card.id} 앞면 보기` : `카드 ${card.id} 뒷면 보기`}
+        onPointerDown={(e) => {
+          gestureRef.current = { x: e.clientX, y: e.clientY, moved: false };
+        }}
+        onPointerMove={(e) => {
+          const g = gestureRef.current;
+          const dx = e.clientX - g.x;
+          const dy = e.clientY - g.y;
+          if (dx * dx + dy * dy > TAP_MOVE_THRESHOLD_PX * TAP_MOVE_THRESHOLD_PX) {
+            g.moved = true;
+          }
+        }}
+        onPointerUp={(e) => {
+          if (e.button !== 0) return;
+          if (gestureRef.current.moved) return;
+          onSelect();
         }}
       >
-        <MobileCardFace src={card.frontWheelSrc} alt={`카드 ${card.id} 앞면`} />
-        {backReady || isFlipped ? (
-          <MobileCardFace src={card.backSrc} alt={`카드 ${card.id} 뒷면`} isBack />
-        ) : (
-          <div
-            className="absolute inset-0 bg-white"
-            style={{
-              borderRadius: FLIP_CARD_RADIUS_PX,
-              backfaceVisibility: "hidden",
-              WebkitBackfaceVisibility: "hidden",
-              transform: "rotateY(180deg)",
-            }}
-          />
-        )}
-      </div>
-    </button>
+        <div
+          ref={innerRef}
+          className="relative h-full w-full"
+          style={{
+            borderRadius: FLIP_CARD_RADIUS_PX,
+            transformStyle: "preserve-3d",
+            transformOrigin: "center center",
+          }}
+        >
+          <MobileCardFace src={card.frontWheelSrc} alt={`카드 ${card.id} 앞면`} />
+          {backReady || isFlipped ? (
+            <MobileCardFace src={card.backSrc} alt={`카드 ${card.id} 뒷면`} isBack />
+          ) : (
+            <div
+              className="absolute inset-0 bg-white"
+              style={{
+                borderRadius: FLIP_CARD_RADIUS_PX,
+                backfaceVisibility: "hidden",
+                WebkitBackfaceVisibility: "hidden",
+                transform: "rotateY(180deg)",
+              }}
+            />
+          )}
+        </div>
+      </button>
+    </div>
   );
 }
 
@@ -179,7 +197,7 @@ export default function FlipMobileSkewDeck() {
     const skewSetter = gsap.quickSetter(".skew-card", "skewY", "deg");
     const clamp = gsap.utils.clamp(-18, 18);
 
-    gsap.set(".skew-card", { transformOrigin: "right center", force3D: true });
+    gsap.set(".skew-card", { force3D: true });
 
     const trigger = ScrollTrigger.create({
       scroller,
@@ -206,8 +224,12 @@ export default function FlipMobileSkewDeck() {
     };
   }, [order.length, cardWidth]);
 
-  const handleToggle = useCallback((cardId: number) => {
-    setFlippedId((prev) => (prev === cardId ? null : cardId));
+  /** 같은 카드면 닫기, 다른 카드면 기존 닫고 새 카드 뒷면 열기 */
+  const handleSelect = useCallback((cardId: number) => {
+    setFlippedId((prev) => {
+      if (prev === cardId) return null;
+      return cardId;
+    });
   }, []);
 
   return (
@@ -237,7 +259,7 @@ export default function FlipMobileSkewDeck() {
             width={cardWidth}
             height={cardHeight}
             isFlipped={flippedId === card.id}
-            onToggle={() => handleToggle(card.id)}
+            onSelect={() => handleSelect(card.id)}
           />
         ))}
 
@@ -246,4 +268,3 @@ export default function FlipMobileSkewDeck() {
     </div>
   );
 }
-
