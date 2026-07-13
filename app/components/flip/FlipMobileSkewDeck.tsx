@@ -24,15 +24,6 @@ function getMobileCardWidth(viewportWidth: number) {
   return Math.min(320, Math.round(viewportWidth * 0.82));
 }
 
-function preloadImage(src: string) {
-  return new Promise<void>((resolve) => {
-    const img = new Image();
-    img.onload = () => resolve();
-    img.onerror = () => resolve();
-    img.src = src;
-  });
-}
-
 function MobileCardFace({
   src,
   alt,
@@ -79,7 +70,6 @@ function MobileFlipCard({
   onSelect: () => void;
 }) {
   const innerRef = useRef<HTMLDivElement>(null);
-  const [backReady, setBackReady] = useState(false);
   const gestureRef = useRef({ x: 0, y: 0, moved: false });
   const wasFlippedRef = useRef(isFlipped);
 
@@ -91,22 +81,14 @@ function MobileFlipCard({
     const prevFlipped = wasFlippedRef.current;
     wasFlippedRef.current = isFlipped;
 
-    // 다른 카드로 넘어갈 때도 앞면/뒷면 전환 애니메이션 유지
     gsap.killTweensOf(inner);
     gsap.to(inner, {
       rotateY: nextAngle,
       ...FLIP_ROTATE,
-      // 첫 마운트는 즉시, 이후 상태 변경만 트윈
       duration: prevFlipped === isFlipped ? 0 : FLIP_ROTATE.duration,
       overwrite: true,
     });
   }, [isFlipped]);
-
-  useEffect(() => {
-    if (!isFlipped) return;
-    if (backReady) return;
-    void preloadImage(card.backSrc).then(() => setBackReady(true));
-  }, [backReady, card.backSrc, isFlipped]);
 
   return (
     <div
@@ -154,19 +136,8 @@ function MobileFlipCard({
           }}
         >
           <MobileCardFace src={card.frontWheelSrc} alt={`카드 ${card.id} 앞면`} />
-          {backReady || isFlipped ? (
-            <MobileCardFace src={card.backSrc} alt={`카드 ${card.id} 뒷면`} isBack />
-          ) : (
-            <div
-              className="absolute inset-0 bg-white"
-              style={{
-                borderRadius: FLIP_CARD_RADIUS_PX,
-                backfaceVisibility: "hidden",
-                WebkitBackfaceVisibility: "hidden",
-                transform: "rotateY(180deg)",
-              }}
-            />
-          )}
+          {/* 뒷면 WebP를 처음부터 마운트해 탭 직후 흰 화면이 나오지 않게 함 */}
+          <MobileCardFace src={card.backWheelSrc} alt={`카드 ${card.id} 뒷면`} isBack />
         </div>
       </button>
     </div>
