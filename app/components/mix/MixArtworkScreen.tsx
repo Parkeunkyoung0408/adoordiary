@@ -25,7 +25,7 @@ import {
 
 const SERVER_UPLOAD_WEBP_QUALITY = 0.92;
 
-async function convertDataUrlToWebp(dataUrl: string, quality = SERVER_UPLOAD_WEBP_QUALITY) {
+async function getServerUploadDataUrl(dataUrl: string, quality = SERVER_UPLOAD_WEBP_QUALITY) {
   const image = await new Promise<HTMLImageElement>((resolve, reject) => {
     const img = new window.Image();
     img.onload = () => resolve(img);
@@ -42,7 +42,7 @@ async function convertDataUrlToWebp(dataUrl: string, quality = SERVER_UPLOAD_WEB
   ctx.drawImage(image, 0, 0);
   const webpDataUrl = canvas.toDataURL("image/webp", quality);
   if (!webpDataUrl.startsWith("data:image/webp;base64,")) {
-    throw new Error("WebP export is not supported");
+    return dataUrl;
   }
 
   return webpDataUrl;
@@ -245,7 +245,7 @@ export default function MixArtworkScreen() {
     if (!previewUrl || selectedId === null || !mixText) return;
     setIsSending(true);
     try {
-      const uploadImageUrl = await convertDataUrlToWebp(previewUrl);
+      const uploadImageUrl = await getServerUploadDataUrl(previewUrl);
       const res = await fetch("/api/visitor-cards", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
