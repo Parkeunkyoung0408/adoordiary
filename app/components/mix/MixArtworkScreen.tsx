@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Download, Instagram, Send, Sparkles } from "lucide-react";
+import { BookOpen, Download, Instagram, Send, Sparkles } from "lucide-react";
 import { artworkConfigList, getArtworkConfig, getCanvasSize, getArtworkAssetUrl } from "./artworkConfig";
 import { renderMixCardForInstagramFromArtwork } from "./mixInstagramExport";
 import { renderMixCard } from "./canvasRenderer";
@@ -257,6 +257,7 @@ export default function MixArtworkScreen() {
       });
       if (!res.ok) throw new Error("send failed");
       showToast("작가에게 전송했어요! 방명록에 남겼습니다");
+      router.push("/mix/guestbook");
     } catch {
       showToast("전송에 실패했어요. 잠시 후 다시 시도해주세요.");
     } finally {
@@ -341,6 +342,14 @@ export default function MixArtworkScreen() {
                   <Instagram className="w-4 h-4" />
                   {isGeneratingInsta ? "만드는 중..." : "인스타 올리기"}
                 </button>
+                <Link
+                  href="/mix/guestbook"
+                  className="w-full h-11 rounded-[30px] bg-white border-2 border-[var(--border-color)] text-[#175138] font-bold text-[13px] flex items-center justify-center gap-1.5 active:scale-[0.98] transition-transform"
+                  style={{ color: "#175138" }}
+                >
+                  <BookOpen className="w-4 h-4" />
+                  방명록 보기
+                </Link>
                 <button
                   type="button"
                   onClick={handleBackToSelect}
