@@ -70,6 +70,42 @@ function getTodayPath() {
   return new Date().toISOString().slice(0, 10);
 }
 
+async function uploadVisitorCardImage(
+  supabase: NonNullable<ReturnType<typeof createSupabaseServerClient>>,
+  storagePath: string,
+  image: NonNullable<ReturnType<typeof parseImageDataUrl>>
+) {
+  const uploadOptions = {
+    contentType: image.contentType,
+    cacheControl: "31536000",
+    upsert: false,
+  };
+
+  const uploadResult = await supabase.storage
+    .from(BUCKET_NAME)
+    .upload(storagePath, image.buffer, uploadOptions);
+
+  const statusCode = uploadResult.error
+    ? "statusCode" in uploadResult.error
+      ? uploadResult.error.statusCode
+      : undefined
+    : undefined;
+
+  if (String(statusCode) !== "404") {
+    return uploadResult;
+  }
+
+  const { error: bucketError } = await supabase.storage.createBucket(BUCKET_NAME, {
+    public: true,
+  });
+
+  if (bucketError && !/already exists/i.test(bucketError.message)) {
+    return uploadResult;
+  }
+
+  return supabase.storage.from(BUCKET_NAME).upload(storagePath, image.buffer, uploadOptions);
+}
+
 function jsonError(error: string, status: number) {
   return NextResponse.json({ error }, { status });
 }
@@ -107,13 +143,7 @@ export async function POST(request: Request) {
     }
 
     const storagePath = `${getTodayPath()}/${crypto.randomUUID()}.${image.extension}`;
-    const { error: uploadError } = await supabase.storage
-      .from(BUCKET_NAME)
-      .upload(storagePath, image.buffer, {
-        contentType: image.contentType,
-        cacheControl: "31536000",
-        upsert: false,
-      });
+    const { error: uploadError } = await uploadVisitorCardImage(supabase, storagePath, image);
 
     if (uploadError) {
       console.error("visitor-cards upload error", uploadError);
