@@ -256,7 +256,7 @@ export default function MixArtworkScreen() {
         }),
       });
       if (!res.ok) throw new Error("send failed");
-      showToast("작가에게 전송했어요! 방명록에 남겼습니다");
+      showToast("갤러리에 전시했어요! 방명록에 남겼습니다");
       router.push("/mix/guestbook");
     } catch {
       showToast("전송에 실패했어요. 잠시 후 다시 시도해주세요.");
@@ -329,7 +329,7 @@ export default function MixArtworkScreen() {
                     style={{ color: "#ffffff" }}
                   >
                     <Send className="w-4 h-4" />
-                    {isSending ? "전송 중..." : "작가에게 전송"}
+                    {isSending ? "전송 중..." : "갤러리에 전시"}
                   </button>
                 </div>
                 <button
@@ -348,7 +348,7 @@ export default function MixArtworkScreen() {
                   style={{ color: "#175138" }}
                 >
                   <BookOpen className="w-4 h-4" />
-                  방명록 보기
+                  갤러리 보러 가기
                 </Link>
                 <button
                   type="button"
