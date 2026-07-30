@@ -73,9 +73,6 @@ export default async function MixGuestbookPage() {
       {cards.length === 0 ? (
         <section className="rounded-[24px] border border-[var(--border-color)] bg-white px-5 py-8 text-center shadow-[var(--shadow-sm)]">
           <p className="text-[14px] font-black text-[#175138]">아직 전송된 이미지가 없습니다.</p>
-          <p className="mt-2 text-[12px] font-bold text-[var(--text-muted)]">
-            사용자가 작가에게 보내기를 누르면 여기에 쌓입니다.
-          </p>
         </section>
       ) : (
         <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
