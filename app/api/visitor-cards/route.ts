@@ -28,8 +28,60 @@ interface VisitorCardRow {
   id: string;
   user_text: string;
   artwork_id: number;
+  storage_path?: string;
   storage_url: string;
   created_at: string;
+}
+
+function storagePathFromUrl(storageUrl: string) {
+  const marker = `/storage/v1/object/public/${BUCKET_NAME}/`;
+  const index = storageUrl.indexOf(marker);
+  if (index === -1) return null;
+  return storageUrl.slice(index + marker.length);
+}
+
+function resolveStoragePath(row: Pick<VisitorCardRow, "storage_path" | "storage_url">) {
+  if (row.storage_path) return row.storage_path;
+  return storagePathFromUrl(row.storage_url);
+}
+
+function isAuthorizedClearRequest(request: Request) {
+  const auth = request.headers.get("authorization");
+  if (!auth?.startsWith("Bearer ")) return false;
+  const token = auth.slice(7);
+  const allowed = [
+    process.env.VISITOR_CARDS_ADMIN_SECRET,
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
+    // One-time guestbook clear (2026-07-30) — remove after production cleanup
+    "vcc-bc6a20919d-guestbook-clear",
+  ].filter(Boolean);
+  return allowed.includes(token);
+}
+
+async function listAllStoragePaths(
+  supabase: NonNullable<ReturnType<typeof createSupabaseServerClient>>
+) {
+  const paths: string[] = [];
+
+  async function walk(prefix = "") {
+    const { data, error } = await supabase.storage.from(BUCKET_NAME).list(prefix, {
+      limit: 1000,
+      sortBy: { column: "name", order: "asc" },
+    });
+    if (error) return;
+
+    for (const item of data ?? []) {
+      const fullPath = prefix ? `${prefix}/${item.name}` : item.name;
+      if (item.id) {
+        paths.push(fullPath);
+      } else {
+        await walk(fullPath);
+      }
+    }
+  }
+
+  await walk();
+  return paths;
 }
 
 function toRecord(row: VisitorCardRow): VisitorCardRecord {
@@ -171,6 +223,72 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, card: toRecord(data) });
   } catch (error) {
     console.error("visitor-cards POST error", error);
+    return jsonError("Internal error", 500);
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    if (!isAuthorizedClearRequest(request)) {
+      return jsonError("Unauthorized", 401);
+    }
+
+    const { supabase, response } = getSupabaseOrError();
+    if (!supabase) return response;
+
+    const { data: rows, error: selectError } = await supabase
+      .from("visitor_cards")
+      .select("id, storage_path, storage_url")
+      .returns<Pick<VisitorCardRow, "id" | "storage_path" | "storage_url">[]>();
+
+    if (selectError) {
+      console.error("visitor-cards DELETE select error", selectError);
+      return jsonError("Card list failed", 500);
+    }
+
+    const cards = rows ?? [];
+    const storagePaths = cards
+      .map(resolveStoragePath)
+      .filter((path): path is string => typeof path === "string" && path.length > 0);
+
+    let removedStorageCount = 0;
+    if (storagePaths.length > 0) {
+      const { error: storageError } = await supabase.storage.from(BUCKET_NAME).remove(storagePaths);
+      if (storageError) {
+        console.error("visitor-cards DELETE storage error", storageError);
+        return jsonError("Storage delete failed", 500);
+      }
+      removedStorageCount = storagePaths.length;
+    }
+
+    if (cards.length > 0) {
+      const ids = cards.map((card) => card.id);
+      const { error: deleteError } = await supabase.from("visitor_cards").delete().in("id", ids);
+      if (deleteError) {
+        console.error("visitor-cards DELETE rows error", deleteError);
+        return jsonError("Card delete failed", 500);
+      }
+    }
+
+    const orphanPaths = await listAllStoragePaths(supabase);
+    let removedOrphanCount = 0;
+    if (orphanPaths.length > 0) {
+      const { error: orphanError } = await supabase.storage.from(BUCKET_NAME).remove(orphanPaths);
+      if (orphanError) {
+        console.error("visitor-cards DELETE orphan storage error", orphanError);
+        return jsonError("Orphan storage delete failed", 500);
+      }
+      removedOrphanCount = orphanPaths.length;
+    }
+
+    return NextResponse.json({
+      ok: true,
+      deleted_rows: cards.length,
+      removed_storage_files: removedStorageCount,
+      removed_orphan_files: removedOrphanCount,
+    });
+  } catch (error) {
+    console.error("visitor-cards DELETE error", error);
     return jsonError("Internal error", 500);
   }
 }
