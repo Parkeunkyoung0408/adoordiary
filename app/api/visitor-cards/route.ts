@@ -52,8 +52,6 @@ function isAuthorizedClearRequest(request: Request) {
   const allowed = [
     process.env.VISITOR_CARDS_ADMIN_SECRET,
     process.env.SUPABASE_SERVICE_ROLE_KEY,
-    // One-time guestbook clear (2026-07-30) — remove after production cleanup
-    "vcc-bc6a20919d-guestbook-clear",
   ].filter(Boolean);
   return allowed.includes(token);
 }
