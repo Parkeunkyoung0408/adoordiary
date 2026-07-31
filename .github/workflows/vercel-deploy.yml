@@ -14,42 +14,8 @@ jobs:
         if: ${{ vars.VERCEL_DEPLOY_HOOK != '' }}
         run: curl -fsS -X POST "${{ vars.VERCEL_DEPLOY_HOOK }}"
 
-      - name: Checkout
+      - name: Deploy hook not configured
         if: ${{ vars.VERCEL_DEPLOY_HOOK == '' }}
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        if: ${{ vars.VERCEL_DEPLOY_HOOK == '' }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: npm
-
-      - name: Install dependencies
-        if: ${{ vars.VERCEL_DEPLOY_HOOK == '' }}
-        run: npm ci
-
-      - name: Pull Vercel environment
-        if: ${{ vars.VERCEL_DEPLOY_HOOK == '' }}
-        run: npx vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-
-      - name: Build
-        if: ${{ vars.VERCEL_DEPLOY_HOOK == '' }}
-        run: npx vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-
-      - name: Deploy
-        if: ${{ vars.VERCEL_DEPLOY_HOOK == '' }}
-        run: npx vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-
-      - name: Skip notice
-        if: ${{ vars.VERCEL_DEPLOY_HOOK == '' && secrets.VERCEL_TOKEN == '' }}
-        run: echo "Set VERCEL_DEPLOY_HOOK (variable) or VERCEL_TOKEN (secret) to enable deploy."
+        run: |
+          echo "VERCEL_DEPLOY_HOOK repository variable is not set."
+          echo "Create a Deploy Hook in Vercel (Settings → Git → Deploy Hooks) and add the URL as a GitHub Actions variable named VERCEL_DEPLOY_HOOK."
