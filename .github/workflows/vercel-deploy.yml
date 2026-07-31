@@ -7,37 +7,49 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy-hook:
-    if: ${{ vars.VERCEL_DEPLOY_HOOK != '' }}
+  deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger Vercel production deploy
+      - name: Deploy via Vercel Deploy Hook
+        if: ${{ vars.VERCEL_DEPLOY_HOOK != '' }}
         run: curl -fsS -X POST "${{ vars.VERCEL_DEPLOY_HOOK }}"
 
-  deploy-cli:
-    if: ${{ vars.VERCEL_DEPLOY_HOOK == '' && secrets.VERCEL_TOKEN != '' }}
-    runs-on: ubuntu-latest
-    env:
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-    steps:
       - name: Checkout
+        if: ${{ vars.VERCEL_DEPLOY_HOOK == '' }}
         uses: actions/checkout@v4
 
       - name: Setup Node.js
+        if: ${{ vars.VERCEL_DEPLOY_HOOK == '' }}
         uses: actions/setup-node@v4
         with:
           node-version: "22"
           cache: npm
 
       - name: Install dependencies
+        if: ${{ vars.VERCEL_DEPLOY_HOOK == '' }}
         run: npm ci
 
       - name: Pull Vercel environment
+        if: ${{ vars.VERCEL_DEPLOY_HOOK == '' }}
         run: npx vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
       - name: Build
+        if: ${{ vars.VERCEL_DEPLOY_HOOK == '' }}
         run: npx vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
       - name: Deploy
+        if: ${{ vars.VERCEL_DEPLOY_HOOK == '' }}
         run: npx vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Skip notice
+        if: ${{ vars.VERCEL_DEPLOY_HOOK == '' && secrets.VERCEL_TOKEN == '' }}
+        run: echo "Set VERCEL_DEPLOY_HOOK (variable) or VERCEL_TOKEN (secret) to enable deploy."
