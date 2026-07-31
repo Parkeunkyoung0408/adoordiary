@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { BookOpen, Download, Instagram, Send, Sparkles } from "lucide-react";
+import { BookOpen, Download, Instagram, Send, Share2, Sparkles } from "lucide-react";
 import { artworkConfigList, getArtworkConfig, getCanvasSize, getArtworkAssetUrl } from "./artworkConfig";
 import { renderMixCardForInstagramFromArtwork } from "./mixInstagramExport";
 import { renderMixCard } from "./canvasRenderer";
@@ -16,7 +16,6 @@ import { useMixToast } from "./MixShell";
 import {
   createObjectUrlFromDataUrl,
   isInAppBrowser,
-  isIOS,
   isMobileDevice,
   isValidFourLetters,
   tryBlobDownload,
@@ -168,36 +167,30 @@ export default function MixArtworkScreen() {
     setShowGuide(true);
   };
 
-  const downloadImage = async (dataUrl: string, filename: string) => {
+  const saveOrShareImage = async (
+    dataUrl: string,
+    filename: string,
+    shareToast = "공유 메뉴에서 '이미지 저장'을 선택해 주세요"
+  ) => {
     if (inApp) {
       openSaveGuide(dataUrl);
       return;
     }
 
-    if (isIOS()) {
+    if (isMobileDevice()) {
       const shareResult = await tryShareImageFile(dataUrl, filename);
       if (shareResult === "shared") {
-        showToast("공유 메뉴에서 '이미지 저장'을 선택해 주세요");
+        showToast(shareToast);
         return;
       }
       if (shareResult === "cancelled") return;
-      openSaveGuide(dataUrl);
-      return;
-    }
 
-    if (isMobileDevice()) {
       const downloaded = await tryBlobDownload(dataUrl, filename);
       if (downloaded) {
         showToast("이미지를 저장했어요!");
         return;
       }
 
-      const shareResult = await tryShareImageFile(dataUrl, filename);
-      if (shareResult === "shared") {
-        showToast("공유 메뉴에서 '이미지 저장'을 선택해 주세요");
-        return;
-      }
-      if (shareResult === "cancelled") return;
       openSaveGuide(dataUrl);
       return;
     }
@@ -209,6 +202,10 @@ export default function MixArtworkScreen() {
     }
 
     showToast("저장에 실패했어요. 다시 시도해주세요.");
+  };
+
+  const downloadImage = async (dataUrl: string, filename: string) => {
+    await saveOrShareImage(dataUrl, filename);
   };
 
   const handleGuideShare = async () => {
@@ -239,6 +236,15 @@ export default function MixArtworkScreen() {
   const handleInstaDownload = async () => {
     if (!instaPreviewUrl || !mixText) return;
     await downloadImage(instaPreviewUrl, `adoor-mix-${mixText}-instagram.png`);
+  };
+
+  const handleInstaShare = async () => {
+    if (!instaPreviewUrl || !mixText) return;
+    await saveOrShareImage(
+      instaPreviewUrl,
+      `adoor-mix-${mixText}-instagram.png`,
+      "공유 메뉴에서 인스타그램을 선택해 주세요"
+    );
   };
 
   const handleSend = async () => {
@@ -460,24 +466,37 @@ export default function MixArtworkScreen() {
                 className="w-full h-auto max-h-[36dvh] object-contain block mx-auto"
               />
             </div>
-            <div className="mt-4 grid grid-cols-2 gap-2 shrink-0">
-              <button
-                type="button"
-                onClick={handleInstaDownload}
-                className="h-11 rounded-[30px] bg-[#175138] text-white font-bold text-[13px] flex items-center justify-center gap-1.5"
-                style={{ color: "#ffffff" }}
-              >
-                <Download className="w-4 h-4" />
-                저장하기
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowInstaModal(false)}
-                className="h-11 rounded-[30px] bg-white border-2 border-[var(--border-color)] text-[#175138] font-bold text-[13px]"
-                style={{ color: "#175138" }}
-              >
-                닫기
-              </button>
+            <div className="mt-4 space-y-2 shrink-0">
+              {!inApp && typeof navigator !== "undefined" && "share" in navigator ? (
+                <button
+                  type="button"
+                  onClick={() => void handleInstaShare()}
+                  className="w-full h-11 rounded-[30px] bg-[#175138] text-white font-bold text-[13px] flex items-center justify-center gap-1.5"
+                  style={{ color: "#ffffff" }}
+                >
+                  <Share2 className="w-4 h-4" />
+                  인스타로 공유
+                </button>
+              ) : null}
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={handleInstaDownload}
+                  className="h-11 rounded-[30px] bg-white border-2 border-[#175138] text-[#175138] font-bold text-[13px] flex items-center justify-center gap-1.5"
+                  style={{ color: "#175138" }}
+                >
+                  <Download className="w-4 h-4" />
+                  저장하기
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowInstaModal(false)}
+                  className="h-11 rounded-[30px] bg-white border-2 border-[var(--border-color)] text-[#175138] font-bold text-[13px]"
+                  style={{ color: "#175138" }}
+                >
+                  닫기
+                </button>
+              </div>
             </div>
           </div>
         </MixModalOverlay>
